@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: payday-backend
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://payday:payday123@postgres:5432/payday_db"
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - payday-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: payday-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: payday
+      POSTGRES_PASSWORD: payday123
+      POSTGRES_DB: payday_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U payday"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - payday-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: payday-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - payday-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: payday-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - payday-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  payday-network:
+    driver: bridge
