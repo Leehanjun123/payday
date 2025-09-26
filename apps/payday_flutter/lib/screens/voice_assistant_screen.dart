@@ -64,7 +64,8 @@ class _VoiceAssistantScreenState extends State<VoiceAssistantScreen>
 
   Future<void> _initializeVoiceService() async {
     await _voiceService.initialize();
-    _conversations = _voiceService.getConversationHistory();
+    // getConversationHistory()는 unmodifiable이므로 새로운 리스트를 생성
+    _conversations = List<ConversationItem>.from(_voiceService.getConversationHistory());
 
     // 인사 메시지
     final greeting = _voiceService.getQuickResponse('greeting');

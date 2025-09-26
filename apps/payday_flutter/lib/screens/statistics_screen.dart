@@ -521,7 +521,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
           ),
           const SizedBox(height: 16),
           Container(
-            height: 120,
+            height: 140,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: List.generate(6, (index) {
@@ -532,11 +532,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Container(
-                          height: height,
-                          decoration: BoxDecoration(
-                            color: Colors.blue.withOpacity(0.7),
-                            borderRadius: BorderRadius.circular(4),
+                        Flexible(
+                          child: Container(
+                            height: height,
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.7),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -546,6 +548,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                             fontSize: 12,
                             color: Colors.grey[600],
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
