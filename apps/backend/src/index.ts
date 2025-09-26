@@ -27,7 +27,7 @@ import investmentRoutes from './routes/investments';
 import predictionRoutes from './routes/predictions';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT!) || 3000;
 
 // Middleware
 app.use(helmet());
