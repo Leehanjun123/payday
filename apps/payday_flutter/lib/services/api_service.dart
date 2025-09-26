@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../config/app_config.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -18,7 +18,7 @@ class ApiService {
     _dio = Dio();
 
     _dio.options = BaseOptions(
-      baseUrl: '${dotenv.env['API_URL']}/api/${dotenv.env['API_VERSION']}',
+      baseUrl: '${AppConfig.baseUrl}/api',
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
       headers: {
