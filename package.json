@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "dev": "turbo run dev",
-    "build": "cd apps/backend && npm install && npm run build",
+    "build": "cd apps/backend && npm install && npm run build && npm run migrate",
     "start": "cd apps/backend && npm start",
     "test": "turbo run test",
     "lint": "turbo run lint",

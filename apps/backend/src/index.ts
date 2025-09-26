@@ -113,4 +113,30 @@ httpServer.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`🌍 Server is accessible from all network interfaces`);
 });
 
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  httpServer.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  httpServer.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+});
+
+// Keep process alive
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception:', err);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 export default app;
