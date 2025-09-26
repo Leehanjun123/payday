@@ -5,9 +5,14 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { initializeSocket } from './socket/socketServer';
+import FirebaseService from './services/firebase.service';
 
 // Load environment variables
 dotenv.config();
+
+// Initialize Firebase Admin SDK (disabled for testing)
+// const firebaseService = FirebaseService.getInstance();
+// firebaseService.initialize();
 
 // Import routes
 import authRoutes from './routes/auth';
@@ -100,11 +105,12 @@ const httpServer = createServer(app);
 initializeSocket(httpServer);
 
 // Start server
-httpServer.listen(PORT, () => {
+httpServer.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`✅ Server is running on port ${PORT}`);
   console.log(`🌐 Health check: http://localhost:${PORT}/health`);
   console.log(`📡 API endpoint: http://localhost:${PORT}/api/v1`);
   console.log(`🔌 Socket.IO server is running`);
+  console.log(`🌍 Server is accessible from all network interfaces`);
 });
 
 export default app;

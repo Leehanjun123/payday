@@ -301,7 +301,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 16),
             _buildSettingItem(
-              Icons.notifications_outline,
+              Icons.notifications_outlined,
               '알림 설정',
               '투자 알림, 수익 알림 등 설정',
               () => _showNotificationSettings(),

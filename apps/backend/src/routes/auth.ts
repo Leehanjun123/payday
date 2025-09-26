@@ -184,7 +184,7 @@ router.post(
 );
 
 // Refresh token
-router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
+router.post('/refresh', async (req: Request, res: Response): Promise<Response> => {
   try {
     const { refreshToken } = req.body;
 

@@ -118,7 +118,12 @@ export function initializeSocket(httpServer: HttpServer) {
             },
             include: {
               participants: true,
-              messages: true,
+              messages: {
+                include: {
+                  sender: true,
+                  readBy: true,
+                },
+              },
             },
           });
         }

@@ -924,7 +924,7 @@ class _EarningsScreenState extends State<EarningsScreen> with TickerProviderStat
                       children: [
                         const SizedBox(height: 40),
                         Icon(
-                          Icons.streams,
+                          Icons.water_drop,
                           size: 80,
                           color: Colors.grey[400],
                         ),

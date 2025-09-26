@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PayDay Ultimate - Premium 3D Banking</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #00b894;
+            --accent: #fd79a8;
+            --gold: #fdcb6e;
+            --dark: #0f0f0f;
+            --light: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif;
+            background: #000;
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+            perspective: 1000px;
+        }
+
+        /* Animated gradient background */
+        .animated-bg {
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 20% 50%, #6c5ce7 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, #00b894 0%, transparent 50%),
+                        radial-gradient(circle at 40% 20%, #fd79a8 0%, transparent 50%),
+                        radial-gradient(circle at 80% 10%, #fdcb6e 0%, transparent 50%);
+            animation: bgAnimation 20s ease infinite;
+            opacity: 0.3;
+            z-index: -1;
+        }
+
+        @keyframes bgAnimation {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            25% { transform: rotate(90deg) scale(1.1); }
+            50% { transform: rotate(180deg) scale(1); }
+            75% { transform: rotate(270deg) scale(1.1); }
+        }
+
+        .phone-container {
+            max-width: 390px;
+            margin: 20px auto;
+            min-height: 844px;
+            padding: 20px;
+            position: relative;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Premium glass morphism overlay */
+        .glass-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+            pointer-events: none;
+            border-radius: 30px;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        /* Enhanced 3D Cards */
+        .cards-container {
+            position: relative;
+            height: 240px;
+            margin-bottom: 40px;
+            perspective: 1200px;
+        }
+
+        .card-3d {
+            position: absolute;
+            width: 100%;
+            height: 220px;
+            border-radius: 25px;
+            padding: 25px;
+            cursor: grab;
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .card-3d:active {
+            cursor: grabbing;
+        }
+
+        .card-3d.card-premium {
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            z-index: 3;
+            transform: translateZ(0) rotateX(0deg);
+        }
+
+        .card-3d.card-business {
+            background: linear-gradient(135deg, #1e3c72, #2a5298, #7e8ce0);
+            z-index: 2;
+            transform: translateZ(-40px) translateY(15px) rotateX(-5deg);
+        }
+
+        .card-3d.card-savings {
+            background: linear-gradient(135deg, #11998e, #38ef7d, #00b894);
+            z-index: 1;
+            transform: translateZ(-80px) translateY(30px) rotateX(-10deg);
+        }
+
+        .card-3d:hover {
+            transform: translateZ(60px) rotateX(5deg) rotateY(-5deg) scale(1.02);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+        }
+
+        .card-3d.active {
+            transform: translateZ(120px) rotateX(0) rotateY(0) scale(1.08);
+            z-index: 10;
+        }
+
+        /* Holographic shimmer effect */
+        .holographic-layer {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                105deg,
+                transparent 40%,
+                rgba(255, 255, 255, 0.3) 50%,
+                transparent 60%
+            );
+            animation: shimmer 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%); }
+            100% { transform: translateX(100%) translateY(100%); }
+        }
+
+        .card-chip {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            width: 50px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            border-radius: 8px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-logo {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            width: 60px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.9);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .card-type {
+            font-size: 11px;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+        }
+
+        .card-number {
+            font-size: 20px;
+            margin: 25px 0;
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-balance {
+            font-size: 32px;
+            font-weight: 700;
+            text-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-name {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.9;
+        }
+
+        /* Floating particles */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8), transparent);
+            border-radius: 50%;
+            animation: floatUp 15s infinite linear;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(90vh) scale(1);
+            }
+            90% {
+                opacity: 1;
+                transform: translateY(10vh) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(0) scale(0);
+            }
+        }
+
+        /* AI Assistant with pulse */
+        .ai-assistant {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            cursor: pointer;
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+            transition: all 0.4s ease;
+            z-index: 100;
+            animation: levitate 3s ease-in-out infinite;
+        }
+
+        @keyframes levitate {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.05); }
+        }
+
+        .ai-assistant::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: inherit;
+            opacity: 0.5;
+            animation: pulse-ring 2s ease-out infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .ai-assistant:hover {
+            transform: scale(1.15) rotate(15deg);
+            box-shadow: 0 20px 50px rgba(102, 126, 234, 0.7);
+        }
+
+        /* Premium Stats */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #00b894, #fd79a8);
+            border-radius: 20px;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: -1;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) scale(1.05);
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 11px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Enhanced transactions with glassmorphism */
+        .transactions-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .transactions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .transactions-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .filter-chips {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chip {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .chip.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .chip:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .transaction-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 12px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 15px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .transaction-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .transaction-item:hover::before {
+            left: 100%;
+        }
+
+        .transaction-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(10px) scale(1.02);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .transaction-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-right: 15px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .transaction-details {
+            flex: 1;
+        }
+
+        .transaction-name {
+            font-size: 15px;
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .transaction-info {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .transaction-date {
+            font-size: 11px;
+            opacity: 0.5;
+        }
+
+        .transaction-category {
+            font-size: 10px;
+            padding: 2px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            text-transform: uppercase;
+        }
+
+        .transaction-amount {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .amount-positive {
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .amount-negative {
+            background: linear-gradient(135deg, #ff7675, #fd79a8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Premium floating navigation */
+        .floating-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(20px);
+            padding: 8px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 100;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .nav-item {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .nav-item::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.4s ease;
+        }
+
+        .nav-item.active::before,
+        .nav-item:hover::before {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .nav-item.active .nav-icon,
+        .nav-item:hover .nav-icon {
+            transform: translateY(-3px) scale(1.1);
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 3px;
+            transition: all 0.4s ease;
+            z-index: 1;
+        }
+
+        .nav-label {
+            font-size: 9px;
+            opacity: 0.7;
+            z-index: 1;
+        }
+
+        /* Gesture hint */
+        .gesture-hint {
+            position: absolute;
+            bottom: 270px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            animation: hint-fade 5s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes hint-fade {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 0.8; }
+        }
+
+        /* Quick actions bar */
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            scrollbar-width: none;
+        }
+
+        .quick-actions::-webkit-scrollbar {
+            display: none;
+        }
+
+        .quick-action {
+            min-width: 100px;
+            padding: 15px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .quick-action:hover {
+            transform: translateY(-5px) scale(1.05);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .quick-action-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+
+        .quick-action-label {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        /* Biometric authentication overlay */
+        .biometric-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .biometric-scanner {
+            width: 200px;
+            height: 200px;
+            border: 3px solid rgba(102, 126, 234, 0.5);
+            border-radius: 50%;
+            position: relative;
+            animation: scan-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scan-pulse {
+            0%, 100% {
+                transform: scale(1);
+                border-color: rgba(102, 126, 234, 0.5);
+            }
+            50% {
+                transform: scale(1.1);
+                border-color: rgba(102, 126, 234, 1);
+            }
+        }
+
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #667eea, transparent);
+            top: 50%;
+            animation: scan-line 2s linear infinite;
+        }
+
+        @keyframes scan-line {
+            0% { transform: translateY(-100px); }
+            100% { transform: translateY(100px); }
+        }
+
+        .biometric-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 80px;
+        }
+
+        /* Notification badge */
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #ff7675, #fd79a8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            border: 2px solid #0f0f0f;
+            animation: badge-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes badge-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    <div class="particles-container" id="particles"></div>
+
+    <div class="phone-container">
+        <div class="glass-overlay"></div>
+
+        <div class="status-bar">
+            <span>9:41</span>
+            <span>⚡ 🔋 5G</span>
+        </div>
+
+        <div class="cards-container">
+            <div class="gesture-hint">스와이프하여 카드 전환</div>
+
+            <div class="card-3d card-premium" onclick="selectCard(this)">
+                <div class="holographic-layer"></div>
+                <div class="card-chip"></div>
+                <div class="card-type">Premium Black</div>
+                <div class="card-number">•••• •••• •••• 4582</div>
+                <div class="card-balance">₩8,547,800</div>
+                <div class="card-name">LEE HAN JUN</div>
+                <div class="card-logo">PAY</div>
+            </div>
+
+            <div class="card-3d card-business" onclick="selectCard(this)">
+                <div class="holographic-layer"></div>
+                <div class="card-chip"></div>
+                <div class="card-type">Business Pro</div>
+                <div class="card-number">•••• •••• •••• 7391</div>
+                <div class="card-balance">₩3,250,000</div>
+                <div class="card-name">LEE HAN JUN</div>
+                <div class="card-logo">PAY</div>
+            </div>
+
+            <div class="card-3d card-savings" onclick="selectCard(this)">
+                <div class="holographic-layer"></div>
+                <div class="card-chip"></div>
+                <div class="card-type">Smart Savings</div>
+                <div class="card-number">•••• •••• •••• 2468</div>
+                <div class="card-balance">₩1,920,500</div>
+                <div class="card-name">LEE HAN JUN</div>
+                <div class="card-logo">PAY</div>
+            </div>
+        </div>
+
+        <div class="quick-actions">
+            <div class="quick-action">
+                <div class="quick-action-icon">💸</div>
+                <div class="quick-action-label">송금</div>
+            </div>
+            <div class="quick-action">
+                <div class="quick-action-icon">📊</div>
+                <div class="quick-action-label">투자</div>
+            </div>
+            <div class="quick-action">
+                <div class="quick-action-icon">💳</div>
+                <div class="quick-action-label">카드관리</div>
+            </div>
+            <div class="quick-action">
+                <div class="quick-action-icon">🎯</div>
+                <div class="quick-action-label">목표</div>
+            </div>
+            <div class="quick-action">
+                <div class="quick-action-icon">🏦</div>
+                <div class="quick-action-label">대출</div>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-icon">📈</div>
+                <div class="stat-value">+24.5%</div>
+                <div class="stat-label">수익률</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-value">₩1.2M</div>
+                <div class="stat-label">이번달 저축</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🎯</div>
+                <div class="stat-value">87%</div>
+                <div class="stat-label">목표 달성</div>
+            </div>
+        </div>
+
+        <div class="transactions-container">
+            <div class="transactions-header">
+                <div class="transactions-title">실시간 거래</div>
+                <div class="filter-chips">
+                    <div class="chip active">전체</div>
+                    <div class="chip">수입</div>
+                    <div class="chip">지출</div>
+                </div>
+            </div>
+
+            <div class="transaction-item">
+                <div class="transaction-icon">🚀</div>
+                <div class="transaction-details">
+                    <div class="transaction-name">프로젝트 대금</div>
+                    <div class="transaction-info">
+                        <span class="transaction-date">방금 전</span>
+                        <span class="transaction-category">프리랜서</span>
+                    </div>
+                </div>
+                <div class="transaction-amount amount-positive">+₩2,850,000</div>
+            </div>
+
+            <div class="transaction-item">
+                <div class="transaction-icon">🛍️</div>
+                <div class="transaction-details">
+                    <div class="transaction-name">애플 스토어</div>
+                    <div class="transaction-info">
+                        <span class="transaction-date">2시간 전</span>
+                        <span class="transaction-category">쇼핑</span>
+                    </div>
+                </div>
+                <div class="transaction-amount amount-negative">-₩189,000</div>
+            </div>
+
+            <div class="transaction-item">
+                <div class="transaction-icon">☕</div>
+                <div class="transaction-details">
+                    <div class="transaction-name">블루보틀</div>
+                    <div class="transaction-info">
+                        <span class="transaction-date">오늘 오전</span>
+                        <span class="transaction-category">카페</span>
+                    </div>
+                </div>
+                <div class="transaction-amount amount-negative">-₩7,500</div>
+            </div>
+
+            <div class="transaction-item">
+                <div class="transaction-icon">💎</div>
+                <div class="transaction-details">
+                    <div class="transaction-name">투자 수익</div>
+                    <div class="transaction-info">
+                        <span class="transaction-date">어제</span>
+                        <span class="transaction-category">투자</span>
+                    </div>
+                </div>
+                <div class="transaction-amount amount-positive">+₩487,300</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="floating-nav">
+        <div class="nav-item active">
+            <div class="nav-icon">🏠</div>
+            <div class="nav-label">홈</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">💳</div>
+            <div class="nav-label">카드</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">📊</div>
+            <div class="nav-label">자산</div>
+            <div class="notification-badge">3</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">🎯</div>
+            <div class="nav-label">목표</div>
+        </div>
+        <div class="nav-item">
+            <div class="nav-icon">👤</div>
+            <div class="nav-label">프로필</div>
+        </div>
+    </div>
+
+    <div class="ai-assistant" onclick="showBiometric()">
+        🤖
+    </div>
+
+    <div class="biometric-overlay" id="biometricOverlay">
+        <div class="biometric-scanner">
+            <div class="scan-line"></div>
+            <div class="biometric-icon">👆</div>
+        </div>
+    </div>
+
+    <script>
+        // Create floating particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            const size = Math.random() * 4 + 2;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Enhanced card selection with rotation
+        let currentCardIndex = 0;
+        const cards = document.querySelectorAll('.card-3d');
+
+        function selectCard(card) {
+            cards.forEach(c => c.classList.remove('active'));
+            card.classList.add('active');
+
+            const index = Array.from(cards).indexOf(card);
+            currentCardIndex = index;
+
+            cards.forEach((c, i) => {
+                if (c === card) {
+                    c.style.zIndex = 10;
+                    c.style.transform = 'translateZ(120px) rotateX(0) rotateY(0) scale(1.08)';
+                } else {
+                    const offset = i < index ? i : i - 1;
+                    c.style.zIndex = 3 - offset;
+                    c.style.transform = `translateZ(${-40 * (offset + 1)}px) translateY(${15 * (offset + 1)}px) rotateX(${-5 * (offset + 1)}deg)`;
+                }
+            });
+        }
+
+        // 3D mouse tracking
+        document.addEventListener('mousemove', (e) => {
+            const cards = document.querySelectorAll('.card-3d:not(.active)');
+            const x = (e.clientX / window.innerWidth - 0.5) * 30;
+            const y = (e.clientY / window.innerHeight - 0.5) * 30;
+
+            cards.forEach(card => {
+                if (!card.classList.contains('active')) {
+                    const currentTransform = card.style.transform;
+                    const baseTransform = currentTransform.replace(/rotateY\([^)]*\)/g, '').replace(/rotateX\([^)]*\)/g, '');
+                    card.style.transform = baseTransform + ` rotateY(${x}deg) rotateX(${-y}deg)`;
+                }
+            });
+        });
+
+        // Swipe gesture for cards
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        const cardsContainer = document.querySelector('.cards-container');
+        cardsContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        cardsContainer.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            if (touchEndX < touchStartX - 50) {
+                // Swipe left - next card
+                currentCardIndex = (currentCardIndex + 1) % cards.length;
+                selectCard(cards[currentCardIndex]);
+            }
+            if (touchEndX > touchStartX + 50) {
+                // Swipe right - previous card
+                currentCardIndex = (currentCardIndex - 1 + cards.length) % cards.length;
+                selectCard(cards[currentCardIndex]);
+            }
+        }
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Filter chips
+        document.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', function() {
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Show biometric
+        function showBiometric() {
+            const overlay = document.getElementById('biometricOverlay');
+            overlay.style.display = 'flex';
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 3000);
+        }
+
+        // Animate values on load
+        window.addEventListener('load', () => {
+            // Animate card balances
+            document.querySelectorAll('.card-balance').forEach((element, index) => {
+                const values = [8547800, 3250000, 1920500];
+                let current = 0;
+                const target = values[index];
+                const increment = target / 60;
+
+                const animate = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        current = target;
+                        clearInterval(animate);
+                    }
+                    element.textContent = '₩' + Math.floor(current).toLocaleString();
+                }, 20);
+            });
+
+            // Animate stat values
+            document.querySelectorAll('.stat-value').forEach(stat => {
+                const finalValue = stat.textContent;
+                if (finalValue.includes('₩')) {
+                    const numValue = parseFloat(finalValue.replace(/[₩M]/g, '')) * 1000000;
+                    let current = 0;
+                    const increment = numValue / 60;
+
+                    const animate = setInterval(() => {
+                        current += increment;
+                        if (current >= numValue) {
+                            current = numValue;
+                            clearInterval(animate);
+                            stat.textContent = finalValue;
+                        } else {
+                            stat.textContent = '₩' + (current / 1000000).toFixed(1) + 'M';
+                        }
+                    }, 20);
+                }
+            });
+        });
+
+        // Auto rotate cards every 5 seconds
+        setInterval(() => {
+            if (!document.querySelector('.card-3d:hover')) {
+                currentCardIndex = (currentCardIndex + 1) % cards.length;
+                selectCard(cards[currentCardIndex]);
+            }
+        }, 5000);
+
+        // Quick action animations
+        document.querySelectorAll('.quick-action').forEach(action => {
+            action.addEventListener('click', function() {
+                this.style.animation = 'bounce 0.5s ease';
+                setTimeout(() => {
+                    this.style.animation = '';
+                }, 500);
+            });
+        });
+    </script>
+</body>
+</html>

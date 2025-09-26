@@ -1,8 +1,14 @@
 import express, { Request, Response } from 'express';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import { prisma } from '../lib/prisma';
+import EarningsService from '../services/earnings.service';
+import SurveyService from '../services/survey.service';
+import AdMobService from '../services/admob.service';
 
 const router = express.Router();
+const earningsService = EarningsService.getInstance();
+const surveyService = SurveyService.getInstance();
+const adMobService = AdMobService.getInstance();
 
 // Get user earnings summary
 router.get('/summary', authenticate, async (req: AuthRequest, res: Response) => {
@@ -143,6 +149,154 @@ router.get('/withdrawals', authenticate, async (req: AuthRequest, res: Response)
   } catch (error) {
     console.error('Error fetching withdrawals:', error);
     res.status(500).json({ error: 'Failed to fetch withdrawals' });
+  }
+});
+
+// ===== NEW MONETIZATION FEATURES =====
+
+// Process ad reward
+router.post('/ad-reward', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { adUnitId, adType } = req.body;
+
+    if (!adUnitId || !adType) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const earning = await earningsService.processAdReward(userId, adUnitId, adType);
+    res.json({ success: true, data: earning });
+  } catch (error) {
+    console.error('Error processing ad reward:', error);
+    res.status(500).json({ error: 'Failed to process ad reward' });
+  }
+});
+
+// Process survey completion
+router.post('/survey-completion', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { surveyId, provider, transactionId } = req.body;
+
+    if (!surveyId || !provider || !transactionId) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    const earning = await earningsService.processSurveyReward(
+      userId,
+      surveyId,
+      provider,
+      transactionId
+    );
+    res.json({ success: true, data: earning });
+  } catch (error) {
+    console.error('Error processing survey completion:', error);
+    res.status(500).json({ error: 'Failed to process survey completion' });
+  }
+});
+
+// Process daily login bonus
+router.post('/daily-bonus', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const { streakDays } = req.body;
+
+    const earning = await earningsService.processDailyBonus(userId, streakDays || 1);
+    res.json({ success: true, data: earning });
+  } catch (error) {
+    console.error('Error processing daily bonus:', error);
+    res.status(500).json({ error: 'Failed to process daily bonus' });
+  }
+});
+
+// Get available surveys
+router.get('/surveys', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+
+    // Mock user profile - in production, this would come from database
+    const userProfile = {
+      id: userId,
+      username: 'user123',
+      email: 'user@example.com',
+      age: 25,
+      country: 'US',
+      interests: ['technology', 'shopping'],
+    };
+
+    const surveys = await surveyService.getAvailableSurveys(userId, userProfile);
+    res.json({ success: true, data: surveys });
+  } catch (error) {
+    console.error('Error getting surveys:', error);
+    res.status(500).json({ error: 'Failed to get surveys' });
+  }
+});
+
+// Get survey statistics
+router.get('/survey-stats', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+
+    const stats = await surveyService.getUserSurveyStats(userId);
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    console.error('Error getting survey stats:', error);
+    res.status(500).json({ error: 'Failed to get survey stats' });
+  }
+});
+
+// Get user's ad revenue summary
+router.get('/ad-revenue', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const period = req.query.period as 'daily' | 'weekly' | 'monthly' || 'daily';
+
+    const revenue = await adMobService.getUserAdRevenue(userId, period);
+    res.json({ success: true, data: revenue });
+  } catch (error) {
+    console.error('Error getting ad revenue:', error);
+    res.status(500).json({ error: 'Failed to get ad revenue' });
+  }
+});
+
+// Get detailed earning statistics
+router.get('/stats', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const period = req.query.period as 'daily' | 'weekly' | 'monthly' || 'daily';
+
+    const stats = await earningsService.getEarningStats(userId, period);
+    res.json({ success: true, data: stats });
+  } catch (error) {
+    console.error('Error getting earning stats:', error);
+    res.status(500).json({ error: 'Failed to get earning stats' });
+  }
+});
+
+// Get real-time balance
+router.get('/balance', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+
+    const balance = await earningsService.getUserBalance(userId);
+    res.json({ success: true, data: balance });
+  } catch (error) {
+    console.error('Error getting balance:', error);
+    res.status(500).json({ error: 'Failed to get balance' });
+  }
+});
+
+// Get earning history with real data
+router.get('/history', authenticate, async (req: AuthRequest, res: Response) => {
+  try {
+    const userId = req.userId!;
+    const limit = parseInt(req.query.limit as string) || 50;
+
+    const history = await earningsService.getEarningHistory(userId, limit);
+    res.json({ success: true, data: history });
+  } catch (error) {
+    console.error('Error getting earning history:', error);
+    res.status(500).json({ error: 'Failed to get earning history' });
   }
 });
 

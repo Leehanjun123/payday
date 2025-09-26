@@ -350,6 +350,133 @@ class ApiService {
     }
   }
 
+  // ===== NEW MONETIZATION APIS =====
+
+  // Process ad reward
+  Future<Map<String, dynamic>> processAdReward(String adUnitId, String adType) async {
+    try {
+      final response = await _dio.post('/earnings/ad-reward', data: {
+        'adUnitId': adUnitId,
+        'adType': adType,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Process survey completion
+  Future<Map<String, dynamic>> processSurveyCompletion(
+    String surveyId,
+    String provider,
+    String transactionId,
+  ) async {
+    try {
+      final response = await _dio.post('/earnings/survey-completion', data: {
+        'surveyId': surveyId,
+        'provider': provider,
+        'transactionId': transactionId,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Process daily login bonus
+  Future<Map<String, dynamic>> processDailyBonus({int streakDays = 1}) async {
+    try {
+      final response = await _dio.post('/earnings/daily-bonus', data: {
+        'streakDays': streakDays,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Get user balance
+  Future<Map<String, dynamic>> getUserBalance() async {
+    try {
+      final response = await _dio.get('/earnings/balance');
+      return response.data['data'];
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Get earning statistics
+  Future<Map<String, dynamic>> getEarningStats(String period) async {
+    try {
+      final response = await _dio.get('/earnings/stats', queryParameters: {
+        'period': period,
+      });
+      return response.data['data'];
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Get ad revenue statistics
+  Future<Map<String, dynamic>> getAdRevenueStats(String period) async {
+    try {
+      final response = await _dio.get('/earnings/ad-revenue', queryParameters: {
+        'period': period,
+      });
+      return response.data['data'];
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Get available surveys
+  Future<List<dynamic>> getAvailableSurveys() async {
+    try {
+      final response = await _dio.get('/earnings/surveys');
+      return response.data['data'] ?? [];
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Get survey statistics
+  Future<Map<String, dynamic>> getSurveyStats() async {
+    try {
+      final response = await _dio.get('/earnings/survey-stats');
+      return response.data['data'];
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Get earning history with real data
+  Future<List<dynamic>> getRealEarningHistory({int limit = 50}) async {
+    try {
+      final response = await _dio.get('/earnings/history', queryParameters: {
+        'limit': limit,
+      });
+      return response.data['data'] ?? [];
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Request withdrawal
+  Future<Map<String, dynamic>> requestWithdrawal(
+    double amount,
+    String method,
+  ) async {
+    try {
+      final response = await _dio.post('/earnings/withdraw', data: {
+        'amount': amount,
+        'method': method,
+      });
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   void dispose() {
     _dio.close();
   }

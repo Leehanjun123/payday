@@ -51,6 +51,16 @@ model User {
   priceAlerts     PriceAlert[]
   predictionAlerts PredictionAlert[]
   analysisAlerts  AnalysisAlert[]
+
+  // New monetization relations
+  balance         UserBalance?
+  withdrawalRequests WithdrawalRequest[]
+  surveyCompletions SurveyCompletion[]
+  adImpressions   AdImpression[]
+  referralsGiven  ReferralRelation[] @relation("ReferralGiven")
+  referralsReceived ReferralRelation[] @relation("ReferralReceived")
+  dailyActivity   UserActivity[]
+  platformIntegrations PlatformIntegration[]
 }
 
 // User roles
@@ -213,25 +223,46 @@ enum PaymentStatus {
   REFUNDED
 }
 
-// Earning model
+// Earning model - Updated for monetization platform
 model Earning {
-  id          String    @id @default(cuid())
+  id          String        @id @default(cuid())
   userId      String
-  paymentId   String    @unique
+  paymentId   String?       @unique
+  type        EarningType
   amount      Float
+  currency    String        @default("USD")
   status      EarningStatus @default(PENDING)
+  source      String        // AdMob, CPX_Research, Panel_Now, etc.
+  transactionId String?     // External transaction ID
+  metadata    Json?         // Additional data (ad unit, survey ID, etc.)
   withdrawnAt DateTime?
-  createdAt   DateTime  @default(now())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  user        User      @relation(fields: [userId], references: [id])
-  payment     Payment   @relation(fields: [paymentId], references: [id])
+  user        User          @relation(fields: [userId], references: [id])
+  payment     Payment?      @relation(fields: [paymentId], references: [id])
+}
+
+// Earning types for monetization
+enum EarningType {
+  AD_REWARD      // Google AdMob rewards
+  SURVEY         // Survey completions
+  CASHBACK       // Shopping cashback
+  REFERRAL       // Referral bonuses
+  DAILY_BONUS    // Daily login bonus
+  STREAK_BONUS   // Consecutive day bonus
+  ACHIEVEMENT    // Achievement rewards
+  PROMOTION      // Promotional rewards
+  TASK_COMPLETION // Legacy task completion
 }
 
 // Earning status
 enum EarningStatus {
   PENDING
+  CONFIRMED
   AVAILABLE
   WITHDRAWN
+  FAILED
 }
 
 // Notification model
@@ -780,4 +811,202 @@ model PortfolioPerformance {
   portfolio   Portfolio @relation(fields: [portfolioId], references: [id])
 
   @@unique([portfolioId, date])
+}
+
+// ===== NEW MONETIZATION MODELS =====
+
+// User Balance model for real-time balance tracking
+model UserBalance {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  totalBalance    Float     @default(0)
+  pendingBalance  Float     @default(0)
+  lifetimeEarnings Float    @default(0)
+  withdrawnAmount Float     @default(0)
+  currency        String    @default("USD")
+  lastUpdated     DateTime  @updatedAt
+  createdAt       DateTime  @default(now())
+
+  user            User      @relation(fields: [userId], references: [id])
+  withdrawals     WithdrawalRequest[]
+}
+
+// Withdrawal Request model
+model WithdrawalRequest {
+  id              String           @id @default(cuid())
+  userId          String
+  balanceId       String
+  amount          Float
+  fee             Float            @default(0)
+  netAmount       Float            // Amount after fee
+  method          WithdrawalMethod
+  accountDetails  Json             // Bank account, PayPal, etc.
+  status          WithdrawalStatus @default(PENDING)
+  processedAt     DateTime?
+  failureReason   String?
+  transactionId   String?          // External transaction ID
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user            User             @relation(fields: [userId], references: [id])
+  balance         UserBalance      @relation(fields: [balanceId], references: [id])
+}
+
+// Withdrawal methods
+enum WithdrawalMethod {
+  TOSS_PAY
+  BANK_TRANSFER
+  PAYPAL
+  CRYPTO_WALLET
+}
+
+// Withdrawal status
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+// Survey Completion tracking
+model SurveyCompletion {
+  id              String    @id @default(cuid())
+  userId          String
+  surveyId        String    // External survey ID
+  provider        String    // CPX_Research, Panel_Now, etc.
+  title           String
+  reward          Float
+  currency        String    @default("USD")
+  status          SurveyCompletionStatus @default(PENDING)
+  transactionId   String?   // Provider transaction ID
+  verifiedAt      DateTime?
+  metadata        Json?     // Survey details, completion time, etc.
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, surveyId, provider])
+}
+
+// Survey completion status
+enum SurveyCompletionStatus {
+  PENDING
+  VERIFIED
+  PAID
+  REJECTED
+  FAILED
+}
+
+// Ad Impression tracking for AdMob
+model AdImpression {
+  id              String    @id @default(cuid())
+  userId          String
+  adUnitId        String
+  adType          AdType
+  reward          Float     @default(0)
+  currency        String    @default("USD")
+  impressionId    String?   // AdMob impression ID
+  status          AdImpressionStatus @default(PENDING)
+  deviceInfo      Json?     // Device fingerprint for fraud prevention
+  timestamp       DateTime  @default(now())
+  verifiedAt      DateTime?
+
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, impressionId])
+}
+
+// Ad types
+enum AdType {
+  REWARDED
+  INTERSTITIAL
+  BANNER
+  NATIVE
+}
+
+// Ad impression status
+enum AdImpressionStatus {
+  PENDING
+  VERIFIED
+  PAID
+  INVALID
+  FRAUD
+}
+
+// Referral System
+model ReferralRelation {
+  id              String    @id @default(cuid())
+  referrerId      String    // User who referred
+  refereeId       String    // User who was referred
+  code            String    // Referral code used
+  status          ReferralStatus @default(PENDING)
+  signupBonus     Float     @default(0)
+  milestoneBonus  Float     @default(0)
+  totalBonus      Float     @default(0)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  referrer        User      @relation("ReferralGiven", fields: [referrerId], references: [id])
+  referee         User      @relation("ReferralReceived", fields: [refereeId], references: [id])
+
+  @@unique([referrerId, refereeId])
+}
+
+// Referral status
+enum ReferralStatus {
+  PENDING        // Referee signed up but not active
+  ACTIVE         // Referee is active user
+  COMPLETED      // All bonuses paid
+  EXPIRED        // Referral expired
+}
+
+// User Daily Activity for streaks and bonuses
+model UserActivity {
+  id              String    @id @default(cuid())
+  userId          String
+  date            DateTime
+  loginCount      Int       @default(0)
+  adWatched       Int       @default(0)
+  surveysCompleted Int      @default(0)
+  earningsGenerated Float   @default(0)
+  streakDays      Int       @default(0)
+  bonusEarned     Float     @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, date])
+}
+
+// Platform Integration tracking
+model PlatformIntegration {
+  id              String    @id @default(cuid())
+  userId          String
+  platform        String    // CashWalk, Swagbucks, etc.
+  platformUserId  String?   // User ID on external platform
+  apiKey          String?   // Encrypted API key if needed
+  status          IntegrationStatus @default(PENDING)
+  lastSync        DateTime?
+  totalEarnings   Float     @default(0)
+  currency        String    @default("USD")
+  metadata        Json?     // Platform-specific data
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  user            User      @relation(fields: [userId], references: [id])
+
+  @@unique([userId, platform])
+}
+
+// Integration status
+enum IntegrationStatus {
+  PENDING
+  CONNECTED
+  SYNCING
+  ERROR
+  DISCONNECTED
 }
