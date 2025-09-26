@@ -232,8 +232,7 @@ router.post('/seed', authenticate, authorize('ADMIN'), async (req: AuthRequest, 
     ];
 
     const skills = await prisma.skill.createMany({
-      data: initialSkills,
-      skipDuplicates: true,
+      data: initialSkills
     });
 
     res.json({

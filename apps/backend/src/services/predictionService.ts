@@ -71,7 +71,7 @@ class PredictionService {
   async updatePrediction(id: string, data: Partial<CreatePredictionData & { actualPrice?: number; accuracy?: number; status?: string }>) {
     return await prisma.prediction.update({
       where: { id },
-      data,
+      data: data as any,
     });
   }
 
@@ -210,7 +210,6 @@ class PredictionService {
         if (shouldTrigger) {
           await this.updatePriceAlert(alert.id, {
             isTriggered: true,
-            triggeredAt: new Date(),
             currentPrice: marketData.currentPrice,
           });
 
