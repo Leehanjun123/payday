@@ -1,0 +1,86 @@
+name: Deploy to Railway
+
+on:
+    push:
+      branches: [main, master]
+    pull_request:
+      branches: [main, master]
+
+jobs:
+    test-backend:
+      runs-on: ubuntu-latest
+      defaults:
+        run:
+          working-directory: apps/backend
+
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Setup Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: '18'
+            cache: 'npm'
+            cache-dependency-path: apps/backend/package-lock.json
+
+        - name: Install dependencies
+          run: npm ci
+
+        - name: Run TypeScript check
+          run: npm run build
+
+        - name: Run linter
+          run: npm run lint || true
+
+    test-flutter:
+      runs-on: ubuntu-latest
+      defaults:
+        run:
+          working-directory: apps/payday_flutter
+
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Setup Flutter
+          uses: subosito/flutter-action@v2
+          with:
+            flutter-version: '3.x'
+            channel: 'stable'
+
+        - name: Get dependencies
+          run: flutter pub get
+
+        - name: Analyze
+          run: flutter analyze --no-fatal-infos
+
+        - name: Format check
+          run: dart format --set-exit-if-changed .
+
+    deploy:
+      needs: [test-backend, test-flutter]
+      runs-on: ubuntu-latest
+      if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Deploy Backend to Railway
+          env:
+            RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          run: |
+            npm install -g @railway/cli
+            cd apps/backend
+            railway up --service backend
+
+        - name: Build Flutter Web
+          run: |
+            cd apps/payday_flutter
+            flutter pub get
+            flutter build web --release
+
+        - name: Deploy Flutter to GitHub Pages
+          uses: peaceiris/actions-gh-pages@v3
+          if: github.ref == 'refs/heads/main'
+          with:
+            github_token: ${{ secrets.GITHUB_TOKEN }}
+            publish_dir: ./apps/payday_flutter/build/web
