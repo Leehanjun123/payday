@@ -3,6 +3,7 @@ import 'package:dio_cookie_manager/dio_cookie_manager.dart';
 import 'package:cookie_jar/cookie_jar.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../config/app_config.dart';
+import 'analytics_service.dart';
 
 class ApiService {
   static final ApiService _instance = ApiService._internal();
@@ -78,6 +79,14 @@ class ApiService {
 
       if (response.data['token'] != null) {
         await setToken(response.data['token']);
+
+        // 로그인 성공 이벤트 로깅
+        await AnalyticsService.logLogin('email');
+
+        // 사용자 ID 설정 (토큰에서 추출 가능하다면)
+        if (response.data['userId'] != null) {
+          await AnalyticsService.setUserId(response.data['userId'].toString());
+        }
       }
 
       return response.data;
@@ -102,6 +111,14 @@ class ApiService {
 
       if (response.data['token'] != null) {
         await setToken(response.data['token']);
+
+        // 회원가입 성공 이벤트 로깅
+        await AnalyticsService.logSignUp('email');
+
+        // 사용자 ID 설정
+        if (response.data['userId'] != null) {
+          await AnalyticsService.setUserId(response.data['userId'].toString());
+        }
       }
 
       return response.data;
@@ -359,6 +376,23 @@ class ApiService {
         'adUnitId': adUnitId,
         'adType': adType,
       });
+
+      // 광고 시청 완료 이벤트 로깅
+      await AnalyticsService.logAdViewed(
+        adType: adType,
+        adUnitId: adUnitId,
+        reward: response.data['reward']?.toDouble(),
+      );
+
+      // 수익 이벤트 로깅
+      if (response.data['reward'] != null) {
+        await AnalyticsService.logEarningEvent(
+          earningType: 'ad_reward',
+          amount: response.data['reward'].toDouble(),
+          source: adType,
+        );
+      }
+
       return response.data;
     } catch (e) {
       throw _handleError(e);
@@ -389,6 +423,22 @@ class ApiService {
       final response = await _dio.post('/earnings/daily-bonus', data: {
         'streakDays': streakDays,
       });
+
+      // 일일 보너스 획득 이벤트 로깅
+      if (response.data['bonusAmount'] != null) {
+        await AnalyticsService.logDailyBonusClaimed(
+          streakDays: streakDays,
+          bonusAmount: response.data['bonusAmount'].toDouble(),
+        );
+
+        // 수익 이벤트 로깅
+        await AnalyticsService.logEarningEvent(
+          earningType: 'daily_bonus',
+          amount: response.data['bonusAmount'].toDouble(),
+          source: 'daily_login',
+        );
+      }
+
       return response.data;
     } catch (e) {
       throw _handleError(e);
@@ -471,6 +521,13 @@ class ApiService {
         'amount': amount,
         'method': method,
       });
+
+      // 출금 요청 이벤트 로깅
+      await AnalyticsService.logWithdrawalRequest(
+        amount: amount,
+        method: method,
+      );
+
       return response.data;
     } catch (e) {
       throw _handleError(e);

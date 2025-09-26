@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "837787239737",
+    "project_id": "payday-app-prod",
+    "storage_bucket": "payday-app-prod.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:837787239737:android:3bfeb3fd4caf6c9f1254e8",
+        "android_client_info": {
+          "package_name": "com.payday.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkjRzQ17LGhBGBEfNRKTXEdWazMXvIgZU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
