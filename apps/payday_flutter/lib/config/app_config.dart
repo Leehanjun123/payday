@@ -37,7 +37,7 @@ class AppConfig {
   static const double withdrawalFee = 500; // 출금 수수료 500원
 
   // API 서버
-  static const String apiBaseUrl = 'https://payday-production.up.railway.app';
+  static const String apiBaseUrl = 'https://payday-production-94a8.up.railway.app';
   static const String apiVersion = 'v1';
 
   // Local development URL (for testing)
