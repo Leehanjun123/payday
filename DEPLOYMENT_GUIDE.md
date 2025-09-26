@@ -1,270 +1,176 @@
-# PayDay App - 배포 가이드 🚀
+# PayDay App 배포 가이드
 
-## 📋 목차
-1. [배포 준비](#배포-준비)
-2. [백엔드 배포](#백엔드-배포)
-3. [모바일 앱 배포](#모바일-앱-배포)
-4. [모니터링 설정](#모니터링-설정)
+## 🚀 GitHub 설정
 
-## 배포 준비
+### 1. GitHub Repository 생성
+1. GitHub (https://github.com) 에 로그인
+2. 우측 상단 + 버튼 → "New repository" 클릭
+3. Repository 정보 입력:
+   - Repository name: `payday-app`
+   - Description: "PayDay - AI-powered personal finance management app"
+   - Public 또는 Private 선택
+   - "Create repository" 클릭
 
-### 1. 환경 변수 설정
+### 2. 로컬 Git 연결 및 푸시
 ```bash
-# .env.production 파일 생성
-cp .env.example .env.production
+# GitHub repository와 연결
+git remote add origin https://github.com/[your-username]/payday-app.git
 
-# 필수 환경 변수 설정
-- JWT_SECRET: 보안 키 생성
-- DATABASE_URL: PostgreSQL 연결 정보
-- REDIS_URL: Redis 연결 정보
-- AWS 자격 증명
+# 코드 푸시
+git push -u origin main
 ```
 
-### 2. 의존성 설치
+### 3. GitHub Secrets 설정
+1. GitHub repository → Settings → Secrets and variables → Actions
+2. "New repository secret" 클릭
+3. 다음 secrets 추가:
+   - `RAILWAY_TOKEN`: Railway에서 발급받은 토큰
+
+## 🚂 Railway 설정
+
+### 1. Railway 프로젝트 생성
+1. Railway (https://railway.app) 에 로그인
+2. "New Project" 클릭
+3. "Deploy from GitHub repo" 선택
+4. `payday-app` repository 선택
+
+### 2. Railway 서비스 설정
+Railway 대시보드에서:
+
+#### Backend 서비스
+1. "New" → "GitHub Repo" → `payday-app` 선택
+2. Service 이름: `backend`
+3. Root Directory: `/apps/backend`
+4. Environment Variables 설정:
+   ```
+   NODE_ENV=production
+   JWT_SECRET=[32자 이상의 랜덤 문자열]
+   DATABASE_URL=[Railway가 자동으로 제공하는 PostgreSQL URL]
+   ```
+
+#### PostgreSQL 데이터베이스
+1. "New" → "Database" → "Add PostgreSQL"
+2. Railway가 자동으로 DATABASE_URL을 backend 서비스에 연결
+
+### 3. Railway Token 발급
+1. Railway 대시보드 → Account Settings
+2. "Tokens" 섹션
+3. "Create Token" 클릭
+4. Token 복사 → GitHub Secrets에 추가
+
+## 📱 Flutter 앱 설정
+
+### 1. Production 환경 변수 업데이트
+`/apps/payday_flutter/.env.production` 파일 수정:
+```env
+# Railway 배포 후 실제 URL로 변경
+API_URL=https://[your-backend-service].up.railway.app
+API_VERSION=v1
+APP_ENV=production
+```
+
+### 2. 변경사항 커밋 및 푸시
 ```bash
-# 루트 디렉토리에서
-yarn install
-
-# 백엔드 빌드
-cd apps/backend
-npm run build
-
-# 모바일 앱 빌드 준비
-cd ../mobile
-npm install
+git add .
+git commit -m "🔧 Update production API URL"
+git push
 ```
 
-## 백엔드 배포
+## 🔄 자동 배포 워크플로우
 
-### Docker를 사용한 로컬 배포
+GitHub Actions가 자동으로:
+1. `main` 브랜치에 push 시 자동 배포 시작
+2. Backend TypeScript 빌드 및 테스트
+3. Flutter 코드 분석 및 포맷 체크
+4. Backend를 Railway에 배포
+5. Flutter 웹 버전을 GitHub Pages에 배포
+
+## ✅ 배포 확인
+
+### Backend 상태 확인
 ```bash
-# Docker Compose 실행
-docker-compose up -d
+# Railway CLI 설치 (선택사항)
+npm install -g @railway/cli
 
-# 데이터베이스 마이그레이션
-docker exec payday-backend npx prisma migrate deploy
-
-# 헬스 체크
-curl http://localhost:3000/health
+# Railway 프로젝트 상태 확인
+railway status
 ```
 
-### AWS ECS 배포
+### 배포된 서비스 접속
+- Backend API: `https://[your-backend-service].up.railway.app`
+- Flutter Web: `https://[your-username].github.io/payday-app`
+
+## 🔧 트러블슈팅
+
+### Railway 배포 실패
+1. Railway 대시보드에서 로그 확인
+2. 환경 변수가 모두 설정되었는지 확인
+3. `railway.json` 파일의 build/deploy 명령어 확인
+
+### GitHub Actions 실패
+1. Actions 탭에서 실패한 워크플로우 확인
+2. 로그에서 에러 메시지 확인
+3. RAILWAY_TOKEN이 올바르게 설정되었는지 확인
+
+### Database 연결 실패
+1. DATABASE_URL이 Railway에서 제공되었는지 확인
+2. Prisma schema와 마이그레이션 확인
+3. Railway 대시보드에서 PostgreSQL 서비스 상태 확인
+
+## 📝 환경 변수 체크리스트
+
+### Backend (Railway)
+- [ ] NODE_ENV=production
+- [ ] DATABASE_URL (Railway가 자동 제공)
+- [ ] JWT_SECRET
+- [ ] PORT (Railway가 자동 제공)
+
+### Flutter
+- [ ] API_URL (Railway backend URL)
+- [ ] API_VERSION
+- [ ] APP_ENV=production
+
+### GitHub Secrets
+- [ ] RAILWAY_TOKEN
+
+## 🎯 다음 단계
+
+1. **모니터링 설정**
+   - Railway 대시보드에서 메트릭 확인
+   - 에러 로그 모니터링
+
+2. **도메인 연결** (선택사항)
+   - Railway에서 커스텀 도메인 설정
+   - SSL 자동 적용
+
+3. **스케일링**
+   - Railway에서 인스턴스 수 조정
+   - 리소스 한계 설정
+
+## 💡 유용한 명령어
+
 ```bash
-# ECR 로그인
-aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin [YOUR_ECR_URI]
+# Git 상태 확인
+git status
 
-# 이미지 빌드 및 푸시
-docker build -t payday-backend ./apps/backend
-docker tag payday-backend:latest [YOUR_ECR_URI]/payday-backend:latest
-docker push [YOUR_ECR_URI]/payday-backend:latest
+# 변경사항 푸시
+git add .
+git commit -m "커밋 메시지"
+git push
 
-# ECS 서비스 업데이트
-aws ecs update-service --cluster payday-cluster --service payday-backend --force-new-deployment
+# Railway CLI 로그인
+railway login
+
+# Railway 로그 확인
+railway logs
+
+# Flutter 웹 빌드
+cd apps/payday_flutter
+flutter build web --release
 ```
 
-### Kubernetes 배포
-```yaml
-# k8s/deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: payday-backend
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: payday-backend
-  template:
-    metadata:
-      labels:
-        app: payday-backend
-    spec:
-      containers:
-      - name: backend
-        image: [YOUR_REGISTRY]/payday-backend:latest
-        ports:
-        - containerPort: 3000
-        env:
-        - name: NODE_ENV
-          value: "production"
-```
+## 📚 참고 자료
 
-```bash
-# 배포
-kubectl apply -f k8s/
-```
-
-## 모바일 앱 배포
-
-### 1. EAS Build 설정
-```bash
-cd apps/mobile
-
-# EAS CLI 설치
-npm install -g eas-cli
-
-# EAS 로그인
-eas login
-
-# 프로젝트 초기화
-eas build:configure
-```
-
-### 2. Android 빌드 및 배포
-```bash
-# 프로덕션 APK 빌드
-eas build --platform android --profile production
-
-# Google Play Store 배포
-eas submit --platform android --latest
-```
-
-### 3. iOS 빌드 및 배포
-```bash
-# 프로덕션 IPA 빌드
-eas build --platform ios --profile production
-
-# App Store Connect 배포
-eas submit --platform ios --latest
-```
-
-### 4. 테스트 배포 (Internal Testing)
-```bash
-# Android 내부 테스트
-eas build --platform android --profile preview
-
-# iOS TestFlight
-eas build --platform ios --profile preview
-```
-
-## 모니터링 설정
-
-### 1. CloudWatch (AWS)
-```javascript
-// 백엔드에 CloudWatch 설정
-import AWS from 'aws-sdk';
-
-const cloudwatch = new AWS.CloudWatch({
-  region: 'ap-northeast-2'
-});
-
-// 메트릭 전송
-cloudwatch.putMetricData({
-  Namespace: 'PayDay',
-  MetricData: [
-    {
-      MetricName: 'APILatency',
-      Value: responseTime,
-      Unit: 'Milliseconds'
-    }
-  ]
-}).promise();
-```
-
-### 2. Sentry 에러 트래킹
-```javascript
-// 백엔드
-import * as Sentry from "@sentry/node";
-
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: process.env.NODE_ENV
-});
-
-// 모바일
-import * as Sentry from 'sentry-expo';
-
-Sentry.init({
-  dsn: 'YOUR_SENTRY_DSN',
-  enableInExpoDevelopment: false,
-  debug: false
-});
-```
-
-### 3. Google Analytics
-```javascript
-// 모바일 앱 분석
-import Analytics from '@react-native-firebase/analytics';
-
-await Analytics().logEvent('task_completed', {
-  task_id: taskId,
-  user_id: userId,
-  amount: amount
-});
-```
-
-## 배포 체크리스트 ✅
-
-### 백엔드
-- [ ] 환경 변수 설정 완료
-- [ ] 데이터베이스 마이그레이션 완료
-- [ ] Redis 연결 확인
-- [ ] SSL 인증서 설정
-- [ ] 로드 밸런서 설정
-- [ ] Auto-scaling 설정
-- [ ] 백업 정책 설정
-
-### 모바일
-- [ ] 앱 아이콘 및 스플래시 스크린
-- [ ] 앱 스토어 메타데이터 준비
-- [ ] 스크린샷 및 프로모션 이미지
-- [ ] 개인정보 처리방침 URL
-- [ ] 이용약관 URL
-- [ ] 앱 심사 가이드라인 확인
-
-### 보안
-- [ ] API 키 로테이션
-- [ ] HTTPS 적용
-- [ ] Rate Limiting 설정
-- [ ] SQL Injection 방지
-- [ ] XSS 방지
-- [ ] CORS 설정
-
-## 트러블슈팅
-
-### 일반적인 문제 해결
-
-1. **Docker 빌드 실패**
-```bash
-# 캐시 클리어 후 재빌드
-docker system prune -a
-docker-compose build --no-cache
-```
-
-2. **EAS 빌드 실패**
-```bash
-# 캐시 클리어
-eas build --clear-cache --platform android
-```
-
-3. **데이터베이스 연결 실패**
-```bash
-# 연결 테스트
-npx prisma db pull
-```
-
-## 롤백 절차
-
-### 백엔드 롤백
-```bash
-# 이전 버전으로 롤백
-docker pull [YOUR_REGISTRY]/payday-backend:previous-version
-docker service update --image [YOUR_REGISTRY]/payday-backend:previous-version payday-backend
-```
-
-### 데이터베이스 롤백
-```bash
-# 마이그레이션 롤백
-npx prisma migrate resolve --rolled-back
-```
-
-## 지원 및 문의
-
-- 기술 지원: tech@payday-app.com
-- 긴급 연락처: +82-10-XXXX-XXXX
-- Slack: #payday-deployment
-- 문서: https://docs.payday-app.com
-
-## 라이선스
-
-Copyright © 2024 PayDay Team. All rights reserved.
+- [Railway 문서](https://docs.railway.app)
+- [GitHub Actions 문서](https://docs.github.com/en/actions)
+- [Flutter 배포 가이드](https://flutter.dev/docs/deployment/web)
