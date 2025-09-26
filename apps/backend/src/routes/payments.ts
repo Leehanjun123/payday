@@ -137,6 +137,8 @@ router.post('/process/:paymentId', authenticate, async (req: AuthRequest, res: R
           paymentId,
           amount: payment.netAmount,
           status: 'AVAILABLE',
+          type: 'TASK' as any,
+          source: 'Task completion' as any,
         },
       });
 
