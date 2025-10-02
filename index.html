@@ -3,45 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PayDay - Premium 3D Banking Experience</title>
+    <title>PayDay | 흩어져 있는 모든 수익, AI로 스마트하게</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        * {
+        /* 
+         * Developer: Gemini
+         * Date: 2025-10-02
+         * Description: Landing page for PayDay App. 
+         * Approach: A developer-centric refinement of the previous version, focusing on code clarity, subtle style adjustments, and performance optimization.
+        */
+
+        /* 1. Structural Refactoring: CSS Reset & Base Styles */
+        :root {
+            --background-color: #0a0a0a;
+            --primary-glow: radial-gradient(circle at 20% 50%, rgba(108, 92, 231, 0.4) 0%, transparent 40%),
+                            radial-gradient(circle at 80% 80%, rgba(0, 184, 148, 0.4) 0%, transparent 40%);
+            --text-primary: #f0f0f0;
+            --text-secondary: #a0a0a0;
+            --glass-bg: rgba(18, 18, 18, 0.5);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-gradient: linear-gradient(135deg, #5a67d8, #886aea);
+        }
+
+        *,
+        *::before,
+        *::after {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #000;
-            min-height: 100vh;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
+        html {
+            scroll-behavior: smooth;
         }
 
-        .showcase-container {
-            text-align: center;
-            padding: 40px;
-            max-width: 900px;
-            position: relative;
-            z-index: 10;
+        body {
+            font-family: 'Inter', 'Noto Sans KR', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .animated-bg {
             position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: var(--background-color);
+            z-index: -1;
+        }
+        .animated-bg::before {
+            content: '';
+            position: absolute;
             width: 200%;
             height: 200%;
             top: -50%;
             left: -50%;
-            background: radial-gradient(circle at 20% 50%, #6c5ce7 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, #00b894 0%, transparent 50%),
-                        radial-gradient(circle at 40% 20%, #fd79a8 0%, transparent 50%);
-            animation: rotate 20s linear infinite;
-            opacity: 0.4;
-            z-index: 1;
+            background: var(--primary-glow);
+            animation: rotate 40s linear infinite;
         }
 
         @keyframes rotate {
@@ -49,323 +73,332 @@
             to { transform: rotate(360deg); }
         }
 
+        /* 2. Core Content & Base Styling: Layout & Typography */
+        .container {
+            max-width: 1120px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .section {
+            padding: 120px 0;
+            text-align: center;
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s cubic-bezier(0.65, 0, 0.35, 1), transform 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .hero {
+            min-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
         .logo {
-            font-size: 72px;
+            font-size: 80px;
             font-weight: 900;
-            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb, #4facfe);
+            background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: 20px;
-            animation: float 3s ease-in-out infinite;
-            text-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+            margin-bottom: 16px;
+            font-family: 'Inter', sans-serif;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+        .hero h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            line-height: 1.4;
+            max-width: 650px;
         }
 
-        .tagline {
-            font-size: 20px;
-            color: #aaa;
-            margin-bottom: 50px;
-            letter-spacing: 1px;
-        }
-
-        .designs-showcase {
-            display: flex;
-            gap: 30px;
-            justify-content: center;
-            margin-bottom: 50px;
-        }
-
-        .design-preview {
-            position: relative;
-            width: 350px;
-            height: 600px;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            overflow: hidden;
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-        }
-
-        .design-preview:hover {
-            transform: translateY(-20px) scale(1.05);
-            background: rgba(255, 255, 255, 0.06);
-            box-shadow: 0 40px 80px rgba(102, 126, 234, 0.4);
-        }
-
-        .design-preview::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            animation: shine 3s linear infinite;
-        }
-
-        @keyframes shine {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .design-iframe {
-            width: 390px;
-            height: 844px;
-            border: none;
-            transform: scale(0.71) translateY(-70px);
-            transform-origin: top center;
-            pointer-events: none;
-        }
-
-        .design-label {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(20px);
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border-radius: 10px;
-            font-size: 10px;
-            margin-left: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .cta-container {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-top: 40px;
+        .hero p {
+            font-size: 18px;
+            font-weight: 400;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 40px;
+            line-height: 1.7;
         }
 
         .cta-button {
-            padding: 18px 40px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 16px 32px;
+            background: var(--accent-gradient);
             color: white;
             border: none;
-            border-radius: 30px;
+            border-radius: 100px;
             font-size: 16px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.4s ease;
-            position: relative;
-            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             text-decoration: none;
-            display: inline-block;
-        }
-
-        .cta-button::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
         }
 
         .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .section-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 24px;
         }
 
-        .cta-button:hover::before {
-            width: 300px;
-            height: 300px;
+        .section-subtitle {
+            font-size: 18px;
+            color: var(--text-secondary);
+            max-width: 720px;
+            margin: 0 auto 80px auto;
+            line-height: 1.7;
         }
 
-        .cta-button.secondary {
-            background: transparent;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .cta-button.secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-
-        .features {
-            display: flex;
+        /* 3. Advanced Styling & Interaction: Feature Cards */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
-            justify-content: center;
-            margin-top: 60px;
+            text-align: left;
         }
 
-        .feature {
-            text-align: center;
-            opacity: 0.8;
-            transition: all 0.3s ease;
+        .feature-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 32px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, border-color 0.3s ease;
         }
 
-        .feature:hover {
-            opacity: 1;
-            transform: scale(1.1);
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
-        .feature-icon {
+        .feature-card-icon {
             font-size: 36px;
-            margin-bottom: 10px;
+            margin-bottom: 24px;
         }
 
-        .feature-text {
-            font-size: 12px;
-            color: #aaa;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .feature-card h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            font-weight: 700;
         }
 
-        .particles {
-            position: fixed;
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            line-height: 1.7;
+            font-weight: 400;
+        }
+
+        .showcase-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .design-preview {
+            width: 320px;
+            height: 650px;
+            border-radius: 40px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            background: #111;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            transition: transform 0.4s ease;
+        }
+
+        .design-preview:hover {
+            transform: scale(1.03);
+        }
+
+        .design-iframe {
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            z-index: 2;
+            border: none;
         }
 
-        .particle {
-            position: absolute;
-            width: 3px;
-            height: 3px;
-            background: white;
-            border-radius: 50%;
-            opacity: 0.5;
-            animation: float-up 20s infinite linear;
+        .blog-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            text-align: left;
         }
 
-        @keyframes float-up {
-            0% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 0.5;
-            }
-            90% {
-                opacity: 0.5;
-            }
-            100% {
-                transform: translateY(-100vh) rotate(360deg);
-                opacity: 0;
-            }
+        .blog-post-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+            text-decoration: none;
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .blog-post-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.2);
         }
 
-        @media (max-width: 768px) {
-            .designs-showcase {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .logo {
-                font-size: 48px;
-            }
-
-            .cta-container {
-                flex-direction: column;
-                align-items: center;
-            }
-
-            .features {
-                flex-wrap: wrap;
-            }
+        .blog-post-content {
+            padding: 32px;
+            flex-grow: 1;
         }
+
+        .blog-post-card .category {
+            font-size: 13px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 12px;
+        }
+
+        .blog-post-card h3 {
+            font-size: 22px;
+            margin-bottom: 12px;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .blog-post-card p {
+            color: var(--text-secondary);
+            font-size: 16px;
+            line-height: 1.7;
+            font-weight: 400;
+        }
+
+        footer {
+            padding: 60px 0;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+            margin-top: 100px;
+        }
+
+        footer p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
     </style>
 </head>
 <body>
     <div class="animated-bg"></div>
-    <div class="particles" id="particles"></div>
 
-    <div class="showcase-container">
-        <h1 class="logo">PayDay</h1>
-        <p class="tagline">차세대 3D 뱅킹 경험</p>
+    <main>
+        <section class="section hero">
+            <div class="container">
+                <h1 class="logo">PayDay</h1>
+                <h2>흩어져 있는 모든 수익, AI로 스마트하게 관리하세요.</h2>
+                <p>쿠팡 파트너스, 유튜브, 프리랜서, 재능 판매까지. PayDay는 당신의 모든 경제 활동을 하나의 플랫폼에서 분석하고 최적의 수익 전략을 제안합니다.</p>
+                <a href="#features" class="cta-button">핵심 기능 자세히 보기</a>
+            </div>
+        </section>
 
-        <div class="designs-showcase">
-            <div class="design-preview" onclick="window.open('design3-3d-card.html', '_blank')">
-                <iframe src="design3-3d-card.html" class="design-iframe"></iframe>
-                <div class="design-label">
-                    Original 3D
-                    <span class="badge">Base</span>
+        <section id="features" class="section">
+            <div class="container">
+                <h2 class="section-title">당신의 시간을 가치있게</h2>
+                <p class="section-subtitle">PayDay는 단순한 가계부가 아닙니다. 수익을 창출하고, 관리하며, 성장시키는 모든 과정을 함께하는 파트너입니다.</p>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-card-icon">📊</div>
+                        <h3>통합 수익 대시보드</h3>
+                        <p>여러 플랫폼에 흩어진 수익 데이터를 실시간으로 한 곳에 모아 직관적인 그래프와 차트로 보여줍니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card-icon">🤖</div>
+                        <h3>AI 기반 수익 분석</h3>
+                        <p>수익 패턴, 효율, 성장 가능성을 분석하여 개인 맞춤형 수익 증대 전략과 새로운 기회를 추천합니다.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-card-icon">💡</div>
+                        <h3>재능 마켓플레이스</h3>
+                        <p>당신의 재능과 스킬을 상품으로 등록하고 경매하거나, 다른 사람의 작업을 도와주며 추가 수익을 창출하세요.</p>
+                    </div>
                 </div>
             </div>
+        </section>
 
-            <div class="design-preview" onclick="window.open('payday-ultimate.html', '_blank')">
-                <iframe src="payday-ultimate.html" class="design-iframe"></iframe>
-                <div class="design-label">
-                    Ultimate Premium
-                    <span class="badge">Enhanced</span>
+        <section id="showcase" class="section">
+            <div class="container">
+                <h2 class="section-title">한 차원 높은 디자인과 경험</h2>
+                <p class="section-subtitle">금융 앱의 딱딱함을 벗어던진, 아름답고 직관적인 디자인을 통해 수익 관리를 즐거운 활동으로 만들어보세요.</p>
+                <div class="showcase-wrapper">
+                     <div class="design-preview" onclick="window.open('payday-ultimate.html', '_blank')">
+                        <iframe src="payday-ultimate.html" class="design-iframe"></iframe>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="cta-container">
-            <a href="payday-ultimate.html" target="_blank" class="cta-button">
-                Ultimate 버전 체험하기
-            </a>
-            <a href="design3-3d-card.html" target="_blank" class="cta-button secondary">
-                Original 버전 보기
-            </a>
-        </div>
+        <section id="blog" class="section">
+            <div class="container">
+                <h2 class="section-title">최신 소식 및 수익화 팁</h2>
+                <p class="section-subtitle">PayDay 팀이 직접 분석하고 전달하는 가장 현실적인 수익 창출 노하우를 만나보세요.</p>
+                <div class="blog-grid">
+                    <a href="#" class="blog-post-card">
+                        <div class="blog-post-content">
+                            <div class="category">Affiliate Marketing</div>
+                            <h3>쿠팡 파트너스, 2025년에도 효과적일까? (수익 인증)</h3>
+                            <p>실제 데이터를 기반으로 쿠팡 파트너스의 현재와 미래, 그리고 수익을 극대화하는 5가지 전략을 공개합니다.</p>
+                        </div>
+                    </a>
+                    <a href="#" class="blog-post-card">
+                        <div class="blog-post-content">
+                            <div class="category">N잡 가이드</div>
+                            <h3>평범한 직장인이 AI로 월 100만원 추가 수익 얻는 법</h3>
+                            <p>코딩을 몰라도 괜찮습니다. ChatGPT와 같은 AI 툴을 활용하여 콘텐츠 제작, 번역 등으로 수익을 내는 방법을 알려드립니다.</p>
+                        </div>
+                    </a>
+                    <a href="#" class="blog-post-card">
+                        <div class="blog-post-content">
+                            <div class="category">App Update</div>
+                            <h3>PayDay 앱, '재능 경매' 기능 정식 오픈!</h3>
+                            <p>당신의 숨겨진 재능, 이제 PayDay에서 가치를 평가받으세요. 재능 경매 기능의 모든 것을 알려드립니다.</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
 
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon">🎨</div>
-                <div class="feature-text">Premium Design</div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">✨</div>
-                <div class="feature-text">3D Animation</div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🚀</div>
-                <div class="feature-text">Next-Gen UX</div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🔐</div>
-                <div class="feature-text">Biometric</div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon">🤖</div>
-                <div class="feature-text">AI Assistant</div>
-            </div>
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 PayDay. All rights reserved.</p>
         </div>
-    </div>
+    </footer>
 
     <script>
-        // Create floating particles
-        const particlesContainer = document.getElementById('particles');
-        for (let i = 0; i < 30; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 20 + 's';
-            particlesContainer.appendChild(particle);
-        }
-
-        // Add hover effect
-        document.querySelectorAll('.design-preview').forEach(preview => {
-            preview.addEventListener('mouseenter', function() {
-                this.style.zIndex = '100';
+        // 3. Advanced Styling & Interaction: Performant scroll animations
+        // This uses the IntersectionObserver to only trigger animations when an element is in view,
+        // which is much more efficient than listening to the scroll event.
+        document.addEventListener('DOMContentLoaded', () => {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        // Performance Optimization: Once the animation is done, we don't need to observe it anymore.
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                threshold: 0.1 // Trigger when 10% of the element is visible
             });
-            preview.addEventListener('mouseleave', function() {
-                this.style.zIndex = '';
+
+            document.querySelectorAll('.section').forEach(section => {
+                observer.observe(section);
             });
         });
     </script>
