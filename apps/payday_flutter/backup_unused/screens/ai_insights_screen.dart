@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/ai_prediction_service.dart';
-import '../services/database_service.dart';
+import '../services/data_service.dart';
 import '../models/income.dart';
 import 'dart:math' as math;
 
@@ -13,7 +13,7 @@ class AIInsightsScreen extends StatefulWidget {
 
 class _AIInsightsScreenState extends State<AIInsightsScreen>
     with TickerProviderStateMixin {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
   PredictionResult? _predictionResult;
   List<Income> _historicalData = [];
   bool _isLoading = true;

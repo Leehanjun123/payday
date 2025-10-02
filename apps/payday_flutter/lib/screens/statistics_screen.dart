@@ -5,7 +5,7 @@ import '../models/income_source.dart';
 import '../widgets/charts/income_line_chart.dart';
 import '../widgets/charts/income_pie_chart.dart';
 import '../models/income.dart';
-import '../services/database_service.dart';
+import '../services/data_service.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({Key? key}) : super(key: key);
@@ -16,7 +16,7 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
   final IncomeServiceInterface _incomeService = IncomeServiceProvider.instance;
-  final DatabaseService _databaseService = DatabaseService();
+  final DataService _databaseService = DataService();
 
   double _totalIncome = 0.0;
   Map<String, double> _incomeByTypes = {};

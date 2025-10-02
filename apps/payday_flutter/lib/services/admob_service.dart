@@ -8,18 +8,36 @@ class AdMobService {
   factory AdMobService() => _instance;
   AdMobService._internal();
 
-  // Test Ad Unit IDs - Replace with real ones in production
-  static const String _testRewardedAdUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/5224354917'
-      : 'ca-app-pub-3940256099942544/1712485313';
+  // 개발 중에는 테스트 ID 사용 (실제 출시 시 변경)
+  static const bool _useTestAds = true; // 테스트 광고로 다시 변경
 
-  static const String _testInterstitialAdUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/1033173712'
-      : 'ca-app-pub-3940256099942544/4411468910';
+  // 실제 광고 ID
+  static const String _realBannerAdUnitId = 'ca-app-pub-6385395341660988/6786561002';
+  static const String _realInterstitialAdUnitId = 'ca-app-pub-6385395341660988/4391320196';
+  static const String _realRewardedAdUnitId = 'ca-app-pub-6385395341660988/4160397668';
 
-  static const String _testBannerAdUnitId = Platform.isAndroid
-      ? 'ca-app-pub-3940256099942544/6300978111'
-      : 'ca-app-pub-3940256099942544/2934735716';
+  // 광고 Unit ID 가져오기
+  static String get _bannerAdUnitId => _useTestAds
+      ? (Platform.isIOS
+          ? 'ca-app-pub-3940256099942544/2934735716'
+          : 'ca-app-pub-3940256099942544/6300978111')
+      : _realBannerAdUnitId;
+
+  static String get _rewardedAdUnitId => _useTestAds
+      ? (Platform.isIOS
+          ? 'ca-app-pub-3940256099942544/1712485313'
+          : 'ca-app-pub-3940256099942544/5224354917')
+      : _realRewardedAdUnitId;
+
+  static String get _interstitialAdUnitId => _useTestAds
+      ? (Platform.isIOS
+          ? 'ca-app-pub-3940256099942544/4411468910'
+          : 'ca-app-pub-3940256099942544/1033173712')
+      : _realInterstitialAdUnitId;
+
+  // Public getters for external access
+  static String get rewardedAdUnitId => _rewardedAdUnitId;
+  static String get interstitialAdUnitId => _interstitialAdUnitId;
 
   RewardedAd? _rewardedAd;
   InterstitialAd? _interstitialAd;
@@ -31,19 +49,40 @@ class AdMobService {
   // Initialize AdMob
   Future<void> initialize() async {
     try {
-      await MobileAds.instance.initialize();
+      // Initialize ApiService first
+      _apiService.initialize();
+
+      print('Initializing AdMob...');
+      final initResult = await MobileAds.instance.initialize();
+      print('AdMob SDK initialized');
+
+      // 초기화 상태 확인
+      initResult.adapterStatuses.forEach((key, value) {
+        print('Adapter: $key - State: ${value.state}');
+      });
+
+      // 테스트 디바이스 설정 - 실제 기기의 IDFA 추가 필요
+      MobileAds.instance.updateRequestConfiguration(
+        RequestConfiguration(testDeviceIds: [
+          'SIMULATOR', // iOS 시뮬레이터
+          'YOUR_TEST_DEVICE_ID', // 실제 기기 ID는 콘솔에서 확인
+        ]),
+      );
+
       await _loadRewardedAd();
       print('AdMob initialized successfully');
     } catch (e) {
       print('Failed to initialize AdMob: $e');
+      print('Error details: ${e.toString()}');
     }
   }
 
   // Load rewarded ad
   Future<void> _loadRewardedAd() async {
     try {
+      print('Loading rewarded ad with ID: $_rewardedAdUnitId');
       await RewardedAd.load(
-        adUnitId: _testRewardedAdUnitId,
+        adUnitId: _rewardedAdUnitId,
         request: const AdRequest(),
         rewardedAdLoadCallback: RewardedAdLoadCallback(
           onAdLoaded: (RewardedAd ad) {
@@ -51,19 +90,29 @@ class AdMobService {
             _isRewardedAdReady = true;
             _setRewardedAdCallbacks();
             if (kDebugMode) {
-              print('Rewarded ad loaded successfully');
+              print('Rewarded ad loaded successfully - Ready to show');
             }
           },
           onAdFailedToLoad: (LoadAdError error) {
             _isRewardedAdReady = false;
             if (kDebugMode) {
-              print('Rewarded ad failed to load: $error');
+              print('Rewarded ad failed to load: ${error.message}');
+              print('Error code: ${error.code}');
+              print('Error domain: ${error.domain}');
             }
+            // 실패 시 재시도는 한 번만
+            // Future.delayed(Duration(seconds: 3), () {
+            //   if (!_isRewardedAdReady) {
+            //     print('Retrying to load rewarded ad...');
+            //     _loadRewardedAd();
+            //   }
+            // });
           },
         ),
       );
     } catch (e) {
       print('Error loading rewarded ad: $e');
+      _isRewardedAdReady = false;
     }
   }
 
@@ -86,33 +135,46 @@ class AdMobService {
 
   // Show rewarded ad
   Future<bool> showRewardedAd() async {
+    print('showRewardedAd called - isReady: $_isRewardedAdReady, ad: ${_rewardedAd != null}');
+
+    // 개발 중 Mock 모드 - 실제 광고 대신 가짜 성공 반환
+    if (kDebugMode && !_isRewardedAdReady) {
+      print('DEBUG MODE: Simulating successful ad view');
+      await Future.delayed(Duration(seconds: 2)); // 광고 시청 시뮬레이션
+      return true; // 개발 중에는 항상 성공 반환
+    }
+
     if (!_isRewardedAdReady || _rewardedAd == null) {
       if (kDebugMode) {
         print('Rewarded ad not ready, loading...');
       }
       await _loadRewardedAd();
-      return false;
-    }
 
-    bool adCompleted = false;
-    double rewardAmount = 0.0;
+      // 잠시 대기 후 다시 체크
+      await Future.delayed(Duration(seconds: 1));
+
+      if (!_isRewardedAdReady || _rewardedAd == null) {
+        print('Ad failed to load after retry');
+        return false;
+      }
+      print('Ad loaded successfully, showing now...');
+    }
 
     try {
       await _rewardedAd!.show(
         onUserEarnedReward: (AdWithoutView ad, RewardItem reward) async {
-          adCompleted = true;
-          rewardAmount = reward.amount.toDouble();
-
           if (kDebugMode) {
             print('User earned reward: ${reward.amount} ${reward.type}');
           }
 
           // Send reward to backend
-          await _processAdReward(_testRewardedAdUnitId, 'REWARDED', rewardAmount);
+          await _processAdReward(_rewardedAdUnitId, 'REWARDED', reward.amount.toDouble());
         },
       );
 
-      return adCompleted;
+      // 광고가 표시되면 일단 true 반환 (실제 보상은 콜백에서 처리)
+      print('Ad shown successfully');
+      return true;
     } catch (e) {
       print('Error showing rewarded ad: $e');
       return false;
@@ -123,7 +185,7 @@ class AdMobService {
   Future<void> _loadInterstitialAd() async {
     try {
       await InterstitialAd.load(
-        adUnitId: _testInterstitialAdUnitId,
+        adUnitId: _interstitialAdUnitId,
         request: const AdRequest(),
         adLoadCallback: InterstitialAdLoadCallback(
           onAdLoaded: (InterstitialAd ad) {
@@ -187,7 +249,7 @@ class AdMobService {
     required void Function(Ad ad) onAdLoaded,
   }) {
     return BannerAd(
-      adUnitId: _testBannerAdUnitId,
+      adUnitId: _bannerAdUnitId,
       size: adSize,
       request: const AdRequest(),
       listener: BannerAdListener(

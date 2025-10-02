@@ -1,24 +1,41 @@
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 
 class ChartsService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
 
   // 수익 트렌드 라인 차트 데이터
   Future<LineChartData> getIncomeLineChartData({
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    await _dbService.database;
-    final incomes = await _dbService.getIncomesByDateRange(startDate, endDate);
+    // 날짜 범위 API가 없으므로 전체 데이터를 가져와서 필터링
+    final allIncomes = await _dbService.getAllIncomes();
+    print('📊 Chart: Total incomes from API: ${allIncomes.length}');
+    print('📊 Chart: Sample data: ${allIncomes.take(2)}');
+
+    final incomes = allIncomes.where((income) {
+      final dateStr = income['date'];
+      if (dateStr == null) return false;
+      final date = DateTime.tryParse(dateStr.toString());
+      if (date == null) return false;
+      return date.isAfter(startDate.subtract(Duration(days: 1))) &&
+             date.isBefore(endDate.add(Duration(days: 1)));
+    }).toList();
+
+    print('📊 Chart: Filtered incomes for date range: ${incomes.length}');
+    print('📊 Chart: Date range: $startDate to $endDate');
 
     // 날짜별로 그룹화
     Map<DateTime, double> dailyIncomes = {};
     for (var income in incomes) {
-      final date = DateTime(income['date'].year, income['date'].month, income['date'].day);
-      dailyIncomes[date] = (dailyIncomes[date] ?? 0) + income['amount'];
+      final dateStr = income['date'] is String ? income['date'] : income['date'].toString();
+      final parsedDate = DateTime.parse(dateStr);
+      final date = DateTime(parsedDate.year, parsedDate.month, parsedDate.day);
+      final amount = income['amount'] is num ? (income['amount'] as num).toDouble() : 0.0;
+      dailyIncomes[date] = (dailyIncomes[date] ?? 0) + amount;
     }
 
     // 날짜 순으로 정렬
@@ -135,18 +152,21 @@ class ChartsService {
 
   // 수익 타입별 파이 차트 데이터
   Future<List<PieChartSectionData>> getIncomeTypePieChartData() async {
-    await _dbService.database;
     final incomes = await _dbService.getAllIncomes();
+    print('🥧 PieChart: Total incomes from API: ${incomes.length}');
 
     Map<String, double> typeAmounts = {};
     double total = 0;
 
     for (var income in incomes) {
-      final type = income['type'] as String;
+      final type = income['type']?.toString() ?? 'other';
       final amount = (income['amount'] as num).toDouble();
       typeAmounts[type] = (typeAmounts[type] ?? 0) + amount;
       total += amount;
+      print('🥧 PieChart: Type: $type, Amount: $amount');
     }
+
+    print('🥧 PieChart: Type amounts: $typeAmounts');
 
     List<PieChartSectionData> sections = [];
     final colors = [
@@ -213,7 +233,6 @@ class ChartsService {
 
   // 월별 수익 막대 차트 데이터
   Future<BarChartData> getMonthlyBarChartData() async {
-    await _dbService.database;
     final incomes = await _dbService.getAllIncomes();
 
     Map<String, double> monthlyIncomes = {};
@@ -227,7 +246,10 @@ class ChartsService {
     }
 
     for (var income in incomes) {
-      final date = income['date'] as DateTime;
+      final dateStr = income['date'];
+      if (dateStr == null) continue;
+      final date = DateTime.tryParse(dateStr.toString());
+      if (date == null) continue;
       final key = '${date.year}-${date.month.toString().padLeft(2, '0')}';
       if (monthlyIncomes.containsKey(key)) {
         monthlyIncomes[key] = monthlyIncomes[key]! + (income['amount'] as num).toDouble();
@@ -328,7 +350,6 @@ class ChartsService {
 
   // 주간 수익 비교 데이터
   Future<Map<String, dynamic>> getWeeklyComparisonData() async {
-    await _dbService.database;
     final now = DateTime.now();
 
     // 이번 주
@@ -339,8 +360,26 @@ class ChartsService {
     final lastWeekStart = thisWeekStart.subtract(const Duration(days: 7));
     final lastWeekEnd = thisWeekStart.subtract(const Duration(days: 1));
 
-    final thisWeekIncomes = await _dbService.getIncomesByDateRange(thisWeekStart, thisWeekEnd);
-    final lastWeekIncomes = await _dbService.getIncomesByDateRange(lastWeekStart, lastWeekEnd);
+    // 전체 데이터를 가져와서 필터링
+    final allIncomes = await _dbService.getAllIncomes();
+
+    final thisWeekIncomes = allIncomes.where((income) {
+      final dateStr = income['date'];
+      if (dateStr == null) return false;
+      final date = DateTime.tryParse(dateStr.toString());
+      if (date == null) return false;
+      return date.isAfter(thisWeekStart.subtract(Duration(days: 1))) &&
+             date.isBefore(thisWeekEnd.add(Duration(days: 1)));
+    }).toList();
+
+    final lastWeekIncomes = allIncomes.where((income) {
+      final dateStr = income['date'];
+      if (dateStr == null) return false;
+      final date = DateTime.tryParse(dateStr.toString());
+      if (date == null) return false;
+      return date.isAfter(lastWeekStart.subtract(Duration(days: 1))) &&
+             date.isBefore(lastWeekEnd.add(Duration(days: 1)));
+    }).toList();
 
     double thisWeekTotal = 0;
     double lastWeekTotal = 0;
@@ -378,6 +417,16 @@ class ChartsService {
         return '임대';
       case 'sales':
         return '판매';
+      case 'ad':
+        return '광고';
+      case 'survey':
+        return '설문조사';
+      case 'affiliate':
+        return '제휴마케팅';
+      case 'content':
+        return '콘텐츠';
+      case 'delivery':
+        return '배달';
       case 'other':
       default:
         return '기타';

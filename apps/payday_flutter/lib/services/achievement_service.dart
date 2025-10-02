@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -69,7 +69,7 @@ enum AchievementType {
 }
 
 class AchievementService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
   late SharedPreferences _prefs;
   List<Achievement> _achievements = [];
 

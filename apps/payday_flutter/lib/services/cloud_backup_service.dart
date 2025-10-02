@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 import 'package:share_plus/share_plus.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 
 class CloudBackupService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   
   static const String _backupVersion = '2.0.0';

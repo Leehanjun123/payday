@@ -1,17 +1,21 @@
 version: '3.8'
 
 services:
+  # Main Node.js Backend
   backend:
     build:
-      context: ./apps/backend
-      dockerfile: Dockerfile
+      context: ./backend
+      dockerfile: Dockerfile.node
     container_name: payday-backend
     ports:
       - "3000:3000"
+    volumes:
+      - ./backend:/usr/src/app
     environment:
-      NODE_ENV: production
+      # For local dev, using local postgres. Railway secrets will be used in CI/CD.
       DATABASE_URL: "postgresql://payday:payday123@postgres:5432/payday_db"
-      JWT_SECRET: ${JWT_SECRET}
+      JWT_SECRET: "a-secure-secret-for-local-dev"
+      REDIS_URL: "redis://redis:6379"
       PORT: 3000
     depends_on:
       postgres:
@@ -22,6 +26,44 @@ services:
     networks:
       - payday-network
 
+  # Passive Income Python API
+  passive-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.python
+    container_name: payday-passive-api
+    command: gunicorn passive_income_api:app --bind 0.0.0.0:5001
+    ports:
+      - "5001:5001"
+    environment:
+      REDIS_URL: "redis://redis:6379"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - payday-network
+
+  # Real Income Python API
+  real-income-api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.python
+    container_name: payday-real-income-api
+    command: gunicorn real_income_apis:app --bind 0.0.0.0:5002
+    ports:
+      - "5002:5002"
+    environment:
+      # API Keys should be managed via .env file for local dev
+      COUPANG_ACCESS_KEY: ""
+      COUPANG_SECRET_KEY: ""
+      YOUTUBE_API_KEY: ""
+      NAVER_CLIENT_ID: ""
+      NAVER_CLIENT_SECRET: ""
+    restart: unless-stopped
+    networks:
+      - payday-network
+
+  # Database & Cache
   postgres:
     image: postgres:15-alpine
     container_name: payday-postgres
@@ -58,20 +100,23 @@ services:
     networks:
       - payday-network
 
-  nginx:
-    image: nginx:alpine
-    container_name: payday-nginx
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-    depends_on:
-      - backend
-    restart: unless-stopped
-    networks:
-      - payday-network
+  # Nginx is commented out for now, can be configured later as an API gateway
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: payday-nginx
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+  #     - ./nginx/ssl:/etc/nginx/ssl:ro
+  #   depends_on:
+  #     - backend
+  #     - passive-api
+  #     - real-income-api
+  #   restart: unless-stopped
+  #   networks:
+  #     - payday-network
 
 volumes:
   postgres_data:

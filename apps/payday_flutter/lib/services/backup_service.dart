@@ -3,11 +3,11 @@ import 'dart:convert';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'income_service.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 
 class BackupService {
   final IncomeServiceInterface _incomeService = IncomeServiceProvider.instance;
-  final DatabaseService _databaseService = DatabaseService();
+  final DataService _databaseService = DataService();
 
   Future<String> createFullBackup() async {
     try {

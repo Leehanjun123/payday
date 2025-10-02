@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../services/income_service.dart';
-import '../services/database_service.dart';
+import '../services/data_service.dart';
+import '../services/admob_service.dart';
 import '../widgets/share_achievement_card.dart';
+import 'walking_reward_screen.dart';
+import 'survey_list_screen.dart';
+import 'mission_screen.dart';
 
 class EnhancedHomeScreen extends StatefulWidget {
   const EnhancedHomeScreen({Key? key}) : super(key: key);
@@ -12,8 +17,12 @@ class EnhancedHomeScreen extends StatefulWidget {
 
 class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
     with TickerProviderStateMixin {
-  final IncomeServiceInterface _incomeService = IncomeServiceProvider.instance;
-  final DatabaseService _databaseService = DatabaseService();
+  final _incomeService = IncomeServiceProvider.instance;
+  final DataService _databaseService = DataService();
+  final AdMobService _adMobService = AdMobService();
+
+  BannerAd? _bannerAd;
+  bool _isBannerAdReady = false;
 
   late AnimationController _pulseController;
   late AnimationController _slideController;
@@ -33,12 +42,32 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
     super.initState();
     _setupAnimations();
     _loadDashboardData();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = _adMobService.createBannerAd(
+      adSize: AdSize.banner,
+      onAdLoaded: (Ad ad) {
+        setState(() {
+          _isBannerAdReady = true;
+        });
+      },
+      onAdFailedToLoad: (Ad ad, LoadAdError error) {
+        ad.dispose();
+        setState(() {
+          _isBannerAdReady = false;
+        });
+      },
+    );
+    _bannerAd?.load();
   }
 
   @override
   void dispose() {
     _pulseController.dispose();
     _slideController.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -93,9 +122,12 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
       List<Map<String, dynamic>> recentIncomes = [];
 
       for (var income in allIncomes) {
+        if (income['date'] == null || income['amount'] == null) continue;
+
         final incomeDate = DateTime.parse(income['date']);
         final incomeDay = DateTime(incomeDate.year, incomeDate.month, incomeDate.day);
-        final amount = income['amount'] as double;
+        final amountValue = income['amount'];
+        final amount = amountValue is num ? amountValue.toDouble() : 0.0;
 
         if (incomeDay == today) {
           todayIncome += amount;
@@ -147,7 +179,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
     }
   }
 
-  String _formatAmount(double amount) {
+  String _formatAmount(double? amount) {
+    if (amount == null) return '₩0';
     return '₩${amount.toStringAsFixed(0).replaceAllMapped(
       RegExp(r'(\\d{1,3})(?=(\\d{3})+(?!\\d))'),
       (Match m) => '${m[1]},',
@@ -169,6 +202,8 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
                   _buildProgressSection(),
                   _buildRecentActivity(),
                   _buildQuickActions(),
+                  _buildRewardAdButton(),
+                  _buildBannerAdSection(),
                   const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
@@ -346,7 +381,13 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
       orElse: () => _goals.first,
     );
 
-    final progress = (activeGoal['current_amount'] ?? 0.0) / activeGoal['target_amount'];
+    final currentAmount = activeGoal['current_amount'] != null
+        ? (activeGoal['current_amount'] is num ? (activeGoal['current_amount'] as num).toDouble() : 0.0)
+        : 0.0;
+    final targetAmount = activeGoal['target_amount'] != null
+        ? (activeGoal['target_amount'] is num ? (activeGoal['target_amount'] as num).toDouble() : 1.0)
+        : 1.0;
+    final double progress = (targetAmount > 0 ? currentAmount / targetAmount : 0.0).clamp(0.0, 1.0);
 
     return SliverToBoxAdapter(
       child: Container(
@@ -382,7 +423,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
             ),
             const SizedBox(height: 12),
             Text(
-              activeGoal['title'],
+              activeGoal['title'] ?? '목표 설정',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -391,7 +432,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              '${_formatAmount(activeGoal['current_amount'] ?? 0.0)} / ${_formatAmount(activeGoal['target_amount'])}',
+              '${_formatAmount(currentAmount)} / ${_formatAmount(targetAmount)}',
               style: TextStyle(
                 fontSize: 14,
                 color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
@@ -399,7 +440,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
             ),
             const SizedBox(height: 12),
             LinearProgressIndicator(
-              value: progress.clamp(0.0, 1.0),
+              value: progress,
               backgroundColor: Colors.grey[300],
               valueColor: AlwaysStoppedAnimation<Color>(
                 progress >= 1.0 ? Colors.green : Colors.orange,
@@ -479,7 +520,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  income['title'],
+                  income['source'] ?? income['title'] ?? '수익',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -497,7 +538,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
             ),
           ),
           Text(
-            _formatAmount(income['amount']),
+            _formatAmount(income['amount'] is num ? (income['amount'] as num).toDouble() : 0.0),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -543,6 +584,54 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
                     Colors.blue,
                     () => _navigateToGoals(),
                   ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildQuickActionCard(
+                    '걷기 보상',
+                    Icons.directions_walk,
+                    Colors.orange,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => WalkingRewardScreen()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildQuickActionCard(
+                    '설문조사',
+                    Icons.assignment,
+                    Colors.purple,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SurveyListScreen()),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildQuickActionCard(
+                    '일일 미션',
+                    Icons.emoji_events,
+                    Colors.amber,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MissionScreen()),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(), // 나중에 친구 초대 버튼 추가
                 ),
               ],
             ),
@@ -678,6 +767,114 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRewardAdButton() {
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.purple[400]!, Colors.pink[400]!],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(20),
+            onTap: _showRewardedAd,
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.play_circle_filled,
+                      color: Colors.white,
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '광고 시청하고 보상 받기',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '30초 광고 시청 시 50원 적립!',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showRewardedAd() async {
+    final success = await _adMobService.showRewardedAd();
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('광고 시청 완료! 보상을 확인해보세요.'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      _loadDashboardData(); // 데이터 새로고침
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('광고를 불러올 수 없습니다. 잠시 후 다시 시도해주세요.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+
+  Widget _buildBannerAdSection() {
+    if (!_isBannerAdReady || _bannerAd == null) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
+
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        height: _bannerAd!.size.height.toDouble(),
+        width: _bannerAd!.size.width.toDouble(),
+        child: AdWidget(ad: _bannerAd!),
       ),
     );
   }

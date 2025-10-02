@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../services/charts_service.dart';
-import '../services/database_service.dart';
+import '../services/data_service.dart';
 
 class ChartsScreen extends StatefulWidget {
   const ChartsScreen({Key? key}) : super(key: key);
@@ -13,7 +13,7 @@ class ChartsScreen extends StatefulWidget {
 class _ChartsScreenState extends State<ChartsScreen>
     with TickerProviderStateMixin {
   final ChartsService _chartsService = ChartsService();
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
 
   late TabController _tabController;
   late AnimationController _animationController;

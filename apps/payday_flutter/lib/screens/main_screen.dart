@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'enhanced_home_screen.dart';
+import 'income_platforms_screen.dart';
 import 'wallet_screen.dart';
 import 'charts_screen.dart';
-import 'ai_insights_screen.dart';
 import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -23,9 +23,9 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     _screens = [
       const EnhancedHomeScreen(),
+      const IncomePlatformsScreen(),  // 부수익 플랫폼 선택 화면
       WalletScreen(key: _walletKey),
-      const ChartsScreen(),  // 통계와 차트 통합
-      const AIInsightsScreen(),
+      const ChartsScreen(),
       const SettingsScreen(),
     ];
   }
@@ -53,9 +53,9 @@ class _MainScreenState extends State<MainScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildNavItem(0, Icons.home_outlined, Icons.home, '홈'),
-                _buildNavItem(1, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, '지갑'),
-                _buildNavItem(2, Icons.bar_chart_outlined, Icons.bar_chart, '분석'),
-                _buildNavItem(3, Icons.auto_graph_outlined, Icons.auto_graph, 'AI'),
+                _buildNavItem(1, Icons.monetization_on_outlined, Icons.monetization_on, '수익'),
+                _buildNavItem(2, Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, '지갑'),
+                _buildNavItem(3, Icons.bar_chart_outlined, Icons.bar_chart, '분석'),
                 _buildNavItem(4, Icons.settings_outlined, Icons.settings, '설정'),
               ],
             ),

@@ -7,7 +7,7 @@ import 'dart:io' show Platform;
 import 'dart:math';
 import 'dart:convert';
 import 'package:intl/intl.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 
 // 알림 타입
 enum NotificationType {
@@ -126,7 +126,7 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
   NotificationSettings _settings = NotificationSettings();
   Timer? _checkTimer;
   static const String _settingsKey = 'notification_settings_v2';
@@ -357,6 +357,7 @@ class NotificationService {
       RepeatInterval.daily,
       platformDetails,
       payload: jsonEncode({'type': 'daily'}),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 
@@ -386,6 +387,7 @@ class NotificationService {
       RepeatInterval.weekly,
       platformDetails,
       payload: jsonEncode({'type': 'weekly'}),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 
@@ -415,6 +417,7 @@ class NotificationService {
       RepeatInterval.daily,
       platformDetails,
       payload: jsonEncode({'type': 'reminder'}),
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
     );
   }
 

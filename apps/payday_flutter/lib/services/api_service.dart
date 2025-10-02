@@ -263,6 +263,36 @@ class ApiService {
     }
   }
 
+  // Generic GET request method
+  Future<Map<String, dynamic>> get(String endpoint, {Map<String, dynamic>? queryParameters}) async {
+    try {
+      final response = await _dio.get(endpoint, queryParameters: queryParameters);
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Generic POST request method
+  Future<Map<String, dynamic>> post(String endpoint, Map<String, dynamic> data) async {
+    try {
+      final response = await _dio.post(endpoint, data: data);
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Generic DELETE request method
+  Future<Map<String, dynamic>> delete(String endpoint) async {
+    try {
+      final response = await _dio.delete(endpoint);
+      return response.data;
+    } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
   // User APIs
   Future<Map<String, dynamic>> getUserProfile() async {
     try {
@@ -530,6 +560,18 @@ class ApiService {
 
       return response.data;
     } catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Clear all earnings data (reset to clean state)
+  Future<Map<String, dynamic>> clearAllEarnings() async {
+    try {
+      final response = await _dio.delete('/earnings/clear-all');
+      print('🗑️ All earnings data cleared from server');
+      return response.data;
+    } catch (e) {
+      print('Failed to clear earnings data: $e');
       throw _handleError(e);
     }
   }

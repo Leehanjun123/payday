@@ -200,6 +200,17 @@ class AnalyticsService {
     );
   }
 
+  // Generic event logging method (for backward compatibility)
+  static Future<void> logEvent({
+    required String name,
+    Map<String, dynamic>? parameters,
+  }) async {
+    await analytics.logEvent(
+      name: name,
+      parameters: parameters?.cast<String, Object>(),
+    );
+  }
+
   // User properties
   static Future<void> setUserProperty({
     required String name,

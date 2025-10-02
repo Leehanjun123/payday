@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 import 'ai_insights_service.dart';
 
 // 위젯 타입
@@ -76,7 +76,7 @@ class DashboardDataStream {
 }
 
 class DashboardWidgetService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
   final AiInsightsService _aiService = AiInsightsService();
 
   // 스트림 컨트롤러

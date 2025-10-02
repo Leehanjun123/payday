@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/database_service.dart';
+import '../services/data_service.dart';
 import '../services/income_service.dart';
 
 class GoalsScreen extends StatefulWidget {
@@ -10,7 +10,7 @@ class GoalsScreen extends StatefulWidget {
 }
 
 class _GoalsScreenState extends State<GoalsScreen> {
-  final DatabaseService _databaseService = DatabaseService();
+  final DataService _databaseService = DataService();
   final IncomeServiceInterface _incomeService = IncomeServiceProvider.instance;
 
   List<Map<String, dynamic>> _goals = [];

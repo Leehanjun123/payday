@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../services/database_service.dart';
+import '../services/data_service.dart';
 import '../services/export_service.dart';
-import '../providers/theme_provider.dart';
-import '../main_test.dart';
 import 'goals_screen.dart';
 import 'notification_settings_screen.dart';
 import 'onboarding_screen.dart';
@@ -15,6 +13,7 @@ import 'widget_preview_screen.dart';
 import 'insights_dashboard_screen.dart';
 import 'leaderboard_screen.dart';
 import 'voice_assistant_screen.dart';
+import 'lockscreen_ad_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({Key? key}) : super(key: key);
@@ -24,7 +23,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  final DatabaseService _databaseService = DatabaseService();
+  final DataService _databaseService = DataService();
   final ExportService _exportService = ExportService();
 
   bool _notificationsEnabled = true;
@@ -48,7 +47,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _notificationsEnabled = notifications == 'true';
       _darkModeEnabled = darkMode == 'true';
       _currency = currency ?? 'KRW';
-      _monthlyGoal = double.tryParse(goal ?? '1000000') ?? 1000000;
+      _monthlyGoal = goal is num ? goal.toDouble() : 1000000.0;
     });
   }
 
@@ -316,25 +315,33 @@ class _SettingsScreenState extends State<SettingsScreen> {
             '다크 모드',
             '어두운 테마 사용',
             Icons.dark_mode,
-            Consumer<ThemeProvider>(
-              builder: (context, themeProvider, child) {
-                return Switch(
-                  value: themeProvider.isDarkMode,
-                  onChanged: (value) async {
-                    await themeProvider.setThemeMode(
-                      value ? ThemeMode.dark : ThemeMode.light
-                    );
-                    await _saveSetting('darkMode', value.toString());
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            value ? '다크 모드가 활성화되었습니다' : '라이트 모드가 활성화되었습니다'
-                          ),
-                        ),
-                      );
-                    }
-                  },
+            Switch(
+              value: _darkModeEnabled,
+              onChanged: (value) {
+                setState(() => _darkModeEnabled = value);
+                _saveSetting('darkMode', value.toString());
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      value ? '다크 모드가 활성화되었습니다' : '라이트 모드가 활성화되었습니다'
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          _buildSettingItem(
+            '잠금화면 광고',
+            '수익 극대화 설정',
+            Icons.lock_clock,
+            IconButton(
+              icon: Icon(Icons.arrow_forward_ios, color: Colors.grey[600]),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LockscreenAdSettingsScreen(),
+                  ),
                 );
               },
             ),

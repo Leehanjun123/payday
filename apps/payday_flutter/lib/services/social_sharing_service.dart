@@ -7,10 +7,10 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart';
 import 'achievement_service.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 
 class SocialSharingService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
   final DateFormat _dateFormatter = DateFormat('yyyy년 MM월 dd일');
   final NumberFormat _currencyFormatter = NumberFormat('#,###');
 

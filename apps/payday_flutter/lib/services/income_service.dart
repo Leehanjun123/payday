@@ -1,189 +1,112 @@
-import '../services/database_service.dart';
-import '../models/income_source.dart';
+// Income Service Interface and Provider
+import 'dart:async';
 
-// 추상 클래스로 인터페이스 정의 - 나중에 API 서비스로 쉽게 교체 가능
+// Interface for income service
 abstract class IncomeServiceInterface {
-  Future<int> addIncome({
-    required String type,
-    required String title,
-    required double amount,
-    String? description,
-    DateTime? date,
-  });
+  Stream<Map<String, dynamic>> get incomeStream;
+  Map<String, dynamic> get currentData;
 
-  Future<List<Map<String, dynamic>>> getAllIncomes();
-  Future<List<Map<String, dynamic>>> getIncomesByType(String type);
+  void startEarning(String type, Map<String, dynamic> params);
+  void stopEarning(String type);
+  Future<void> claimEarnings(String type);
+  Future<void> initializeAutomaticEarnings();
+  Future<void> dispose();
+  Future<Map<String, dynamic>> getStatistics();
+  Future<Map<String, dynamic>> getAvailableRewards();
+  Future<void> claimReward(String rewardId);
+  Future<List<Map<String, dynamic>>> getTransactionHistory();
+  Future<Map<String, dynamic>> getDailyBonus();
+  Future<void> claimDailyBonus();
+  Future<void> withdraw(double amount, String method);
+  Future<Map<String, dynamic>> getWithdrawalInfo();
+  Future<void> updateUserProfile(Map<String, dynamic> profile);
+  Future<Map<String, dynamic>> getUserProfile();
   Future<double> getTotalIncome();
-  Future<double> getMonthlyIncome(int year, int month);
-  Future<Map<String, double>> getIncomeByTypes();
-
-  Future<int> updateIncome(int id, {
-    String? title,
-    double? amount,
-    String? description,
-    DateTime? date,
-  });
-
-  Future<int> deleteIncome(int id);
+  Future<List<Map<String, dynamic>>> getAllIncomes();
+  Future<Map<String, Map<String, dynamic>>> getIncomeByTypes();
+  Future<void> updateIncome(int id, Map<String, dynamic> data);
+  Future<void> deleteIncome(int id);
 }
 
-// 현재는 로컬 데이터베이스 구현 - 나중에 ApiIncomeService로 교체 가능
-class LocalIncomeService implements IncomeServiceInterface {
-  final DatabaseService _databaseService = DatabaseService();
+// Simple dummy implementation
+class _DummyIncomeService implements IncomeServiceInterface {
+  final _streamController = StreamController<Map<String, dynamic>>.broadcast();
 
   @override
-  Future<int> addIncome({
-    required String type,
-    required String title,
-    required double amount,
-    String? description,
-    DateTime? date,
-  }) async {
-    return await _databaseService.addIncome(
-      type: type,
-      title: title,
-      amount: amount,
-      description: description,
-      date: date,
-    );
+  Stream<Map<String, dynamic>> get incomeStream => _streamController.stream;
+
+  @override
+  Map<String, dynamic> get currentData => {};
+
+  @override
+  void startEarning(String type, Map<String, dynamic> params) {}
+
+  @override
+  void stopEarning(String type) {}
+
+  @override
+  Future<void> claimEarnings(String type) async {}
+
+  @override
+  Future<void> initializeAutomaticEarnings() async {}
+
+  @override
+  Future<void> dispose() async {
+    await _streamController.close();
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getAllIncomes() async {
-    return await _databaseService.getAllIncomes();
-  }
+  Future<Map<String, dynamic>> getStatistics() async => {};
 
   @override
-  Future<List<Map<String, dynamic>>> getIncomesByType(String type) async {
-    return await _databaseService.getIncomesByType(type);
-  }
+  Future<Map<String, dynamic>> getAvailableRewards() async => {};
 
   @override
-  Future<double> getTotalIncome() async {
-    return await _databaseService.getTotalIncome();
-  }
+  Future<void> claimReward(String rewardId) async {}
 
   @override
-  Future<double> getMonthlyIncome(int year, int month) async {
-    return await _databaseService.getMonthlyIncome(year, month);
-  }
+  Future<List<Map<String, dynamic>>> getTransactionHistory() async => [];
 
   @override
-  Future<Map<String, double>> getIncomeByTypes() async {
-    return await _databaseService.getIncomeByTypes();
-  }
+  Future<Map<String, dynamic>> getDailyBonus() async => {};
 
   @override
-  Future<int> updateIncome(int id, {
-    String? title,
-    double? amount,
-    String? description,
-    DateTime? date,
-  }) async {
-    return await _databaseService.updateIncome(
-      id,
-      title: title,
-      amount: amount,
-      description: description,
-      date: date,
-    );
-  }
+  Future<void> claimDailyBonus() async {}
 
   @override
-  Future<int> deleteIncome(int id) async {
-    return await _databaseService.deleteIncome(id);
-  }
+  Future<void> withdraw(double amount, String method) async {}
+
+  @override
+  Future<Map<String, dynamic>> getWithdrawalInfo() async => {};
+
+  @override
+  Future<void> updateUserProfile(Map<String, dynamic> profile) async {}
+
+  @override
+  Future<Map<String, dynamic>> getUserProfile() async => {};
+
+  @override
+  Future<double> getTotalIncome() async => 0.0;
+
+  @override
+  Future<List<Map<String, dynamic>>> getAllIncomes() async => [];
+
+  @override
+  Future<Map<String, Map<String, dynamic>>> getIncomeByTypes() async => {};
+
+  @override
+  Future<void> updateIncome(int id, Map<String, dynamic> data) async {}
+
+  @override
+  Future<void> deleteIncome(int id) async {}
 }
 
-// 나중에 API 구현할 때 사용할 클래스 (예시)
-class ApiIncomeService implements IncomeServiceInterface {
-  // final ApiClient _apiClient = ApiClient();
-
-  @override
-  Future<int> addIncome({
-    required String type,
-    required String title,
-    required double amount,
-    String? description,
-    DateTime? date,
-  }) async {
-    // TODO: API 호출로 교체
-    // final response = await _apiClient.post('/incomes', {
-    //   'type': type,
-    //   'title': title,
-    //   'amount': amount,
-    //   'description': description,
-    //   'date': date?.toIso8601String(),
-    // });
-    // return response['id'];
-
-    throw UnimplementedError('API 구현 필요');
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> getAllIncomes() async {
-    // TODO: API 호출로 교체
-    // final response = await _apiClient.get('/incomes');
-    // return List<Map<String, dynamic>>.from(response['data']);
-
-    throw UnimplementedError('API 구현 필요');
-  }
-
-  @override
-  Future<List<Map<String, dynamic>>> getIncomesByType(String type) async {
-    // TODO: API 호출로 교체
-    throw UnimplementedError('API 구현 필요');
-  }
-
-  @override
-  Future<double> getTotalIncome() async {
-    // TODO: API 호출로 교체
-    throw UnimplementedError('API 구현 필요');
-  }
-
-  @override
-  Future<double> getMonthlyIncome(int year, int month) async {
-    // TODO: API 호출로 교체
-    throw UnimplementedError('API 구현 필요');
-  }
-
-  @override
-  Future<Map<String, double>> getIncomeByTypes() async {
-    // TODO: API 호출로 교체
-    throw UnimplementedError('API 구현 필요');
-  }
-
-  @override
-  Future<int> updateIncome(int id, {
-    String? title,
-    double? amount,
-    String? description,
-    DateTime? date,
-  }) async {
-    // TODO: API 호출로 교체
-    throw UnimplementedError('API 구현 필요');
-  }
-
-  @override
-  Future<int> deleteIncome(int id) async {
-    // TODO: API 호출로 교체
-    throw UnimplementedError('API 구현 필요');
-  }
-}
-
-// 싱글톤 패턴으로 서비스 인스턴스 관리
+// Provider for the income service
 class IncomeServiceProvider {
-  static IncomeServiceInterface? _instance;
+  static final IncomeServiceInterface _instance = _DummyIncomeService();
 
-  static IncomeServiceInterface get instance {
-    // 개발 환경에서는 로컬 서비스 사용
-    // 프로덕션에서는 API 서비스 사용
-    _instance ??= LocalIncomeService(); // 나중에 ApiIncomeService()로 교체
-    return _instance!;
-  }
+  static IncomeServiceInterface get instance => _instance;
 
-  // 테스트나 다른 환경에서 서비스를 교체할 수 있도록
-  static void setInstance(IncomeServiceInterface service) {
-    _instance = service;
-  }
+  // Prevent instantiation
+  IncomeServiceProvider._();
 }

@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 
 // 사용자 프로필
 class UserProfile {
@@ -151,7 +151,7 @@ class CommunityPost {
 }
 
 class CommunityService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
   static const String _profileKey = 'user_profile';
   static const String _leaderboardCacheKey = 'leaderboard_cache';
 

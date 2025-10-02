@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 import 'package:intl/intl.dart';
 
 // 위젯 데이터 모델
@@ -105,7 +105,7 @@ enum WidgetSize {
 }
 
 class WidgetService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
   static const String _widgetDataKey = 'widget_data';
   static const String _widgetConfigKey = 'widget_config';
 

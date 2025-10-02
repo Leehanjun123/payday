@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:intl/intl.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 
 // 인사이트 타입
 enum InsightType {
@@ -81,7 +81,7 @@ class IncomePattern {
 }
 
 class AIInsightsService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
 
   // 모든 인사이트 생성
   Future<List<Insight>> generateInsights() async {

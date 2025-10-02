@@ -4,12 +4,12 @@ import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 import 'ai_prediction_service.dart';
 import '../models/income.dart';
 
 class DataExportService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
   final DateFormat _dateFormatter = DateFormat('yyyy-MM-dd');
   final DateFormat _timeFormatter = DateFormat('HH:mm:ss');
 

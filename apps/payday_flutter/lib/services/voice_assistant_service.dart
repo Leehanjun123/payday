@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'database_service.dart';
+import 'data_service.dart';
 
 // 음성 명령 타입
 enum VoiceCommandType {
@@ -46,7 +46,7 @@ class ConversationItem {
 }
 
 class VoiceAssistantService {
-  final DatabaseService _dbService = DatabaseService();
+  final DataService _dbService = DataService();
 
   static const String _settingsKey = 'voice_settings';
   static const String _historyKey = 'voice_history';

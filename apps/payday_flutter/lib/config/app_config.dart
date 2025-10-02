@@ -1,10 +1,11 @@
 // 실제 수익 창출 서비스 연동 설정
 class AppConfig {
   // 광고 네트워크 설정
-  static const String admobAppId = 'ca-app-pub-XXXXXXXXXXXXX'; // AdMob App ID
-  static const String admobBannerId = 'ca-app-pub-XXXXXXXXXXXXX/XXXXXXXXXX';
-  static const String admobInterstitialId = 'ca-app-pub-XXXXXXXXXXXXX/XXXXXXXXXX';
-  static const String admobRewardedId = 'ca-app-pub-XXXXXXXXXXXXX/XXXXXXXXXX';
+  // 실제 AdMob ID (개발 중에는 AdMobService의 테스트 모드 사용)
+  static const String admobAppId = 'ca-app-pub-6385395341660988~3721413960'; // 실제 iOS App ID
+  static const String admobBannerId = 'ca-app-pub-6385395341660988/6786561002'; // 실제 Banner Ad Unit ID
+  static const String admobInterstitialId = 'ca-app-pub-6385395341660988/4391320196'; // 실제 Interstitial Ad Unit ID
+  static const String admobRewardedId = 'ca-app-pub-6385395341660988/4160397668'; // 실제 Rewarded Ad Unit ID
 
   // Unity Ads
   static const String unityGameId = 'XXXXXXX';
