@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/api_service.dart';
-import 'main_screen.dart';
+import 'package:payday_flutter/services/auth_service.dart';
+import 'marketplace/marketplace_list_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -11,16 +11,13 @@ class AuthScreen extends StatefulWidget {
 
 class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   late TabController _tabController;
-  final ApiService _apiService = ApiService();
+  final AuthService _authService = AuthService();
 
-  // 로그인 폼 컨트롤러
+  // Controllers
   final _loginEmailController = TextEditingController();
   final _loginPasswordController = TextEditingController();
-
-  // 회원가입 폼 컨트롤러
   final _registerNameController = TextEditingController();
   final _registerEmailController = TextEditingController();
-  final _registerPhoneController = TextEditingController();
   final _registerPasswordController = TextEditingController();
   final _registerConfirmPasswordController = TextEditingController();
 
@@ -32,17 +29,6 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _checkLoginStatus();
-  }
-
-  Future<void> _checkLoginStatus() async {
-    final token = await _apiService.getToken();
-    if (token != null && mounted) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainScreen()),
-      );
-    }
   }
 
   @override
@@ -52,7 +38,6 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     _loginPasswordController.dispose();
     _registerNameController.dispose();
     _registerEmailController.dispose();
-    _registerPhoneController.dispose();
     _registerPasswordController.dispose();
     _registerConfirmPasswordController.dispose();
     super.dispose();
@@ -67,21 +52,25 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     setState(() => _isLoading = true);
 
     try {
-      final result = await _apiService.login(
+      final success = await _authService.login(
         _loginEmailController.text,
         _loginPasswordController.text,
       );
 
-      if (mounted) {
+      if (success && mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          MaterialPageRoute(builder: (context) => const MarketplaceListScreen()),
         );
+      } else {
+        _showSnackBar('로그인에 실패했습니다. 이메일 또는 비밀번호를 확인해주세요.');
       }
     } catch (e) {
       _showSnackBar(e.toString());
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -94,38 +83,43 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
     if (_registerEmailController.text.isEmpty ||
         _registerPasswordController.text.isEmpty ||
         _registerNameController.text.isEmpty) {
-      _showSnackBar('필수 정보를 모두 입력해주세요');
+      _showSnackBar('이름, 이메일, 비밀번호는 필수 항목입니다.');
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      final result = await _apiService.register(
+      final success = await _authService.register(
         _registerEmailController.text,
         _registerPasswordController.text,
         _registerNameController.text,
-        _registerPhoneController.text,
       );
 
-      if (mounted) {
+      if (success && mounted) {
+        _showSnackBar('회원가입 성공! 자동으로 로그인됩니다.', isError: false);
+        // 로그인 성공 후 마켓플레이스 화면으로 이동
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          MaterialPageRoute(builder: (context) => const MarketplaceListScreen()),
         );
+      } else {
+        _showSnackBar('회원가입에 실패했습니다. 이미 사용중인 이메일일 수 있습니다.');
       }
     } catch (e) {
       _showSnackBar(e.toString());
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
-  void _showSnackBar(String message) {
+  void _showSnackBar(String message, {bool isError = true}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red.shade600,
+        backgroundColor: isError ? Colors.red.shade600 : Colors.green.shade600,
       ),
     );
   }
@@ -287,52 +281,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                 color: Colors.grey.shade600,
               ),
             ),
-          ),
-          const SizedBox(height: 32),
-          Row(
-            children: [
-              Expanded(child: Divider(color: Colors.grey.shade300)),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  '또는',
-                  style: TextStyle(color: Colors.grey.shade600),
-                ),
-              ),
-              Expanded(child: Divider(color: Colors.grey.shade300)),
-            ],
-          ),
-          const SizedBox(height: 32),
-          // 게스트 모드 버튼
-          OutlinedButton(
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const MainScreen()),
-              );
-            },
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              side: BorderSide(color: Colors.grey.shade400),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.person_outline, color: Colors.grey.shade600),
-                const SizedBox(width: 8),
-                Text(
-                  '게스트로 시작하기',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          )
         ],
       ),
     );
@@ -356,13 +305,6 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
             label: '이메일',
             icon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            controller: _registerPhoneController,
-            label: '전화번호 (선택)',
-            icon: Icons.phone_outlined,
-            keyboardType: TextInputType.phone,
           ),
           const SizedBox(height: 16),
           _buildTextField(
@@ -391,6 +333,12 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
               ),
               onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
             ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '* 비밀번호는 8자 이상, 영문 대/소문자, 숫자를 포함해야 합니다.',
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+            textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
           ElevatedButton(
@@ -428,7 +376,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
               color: Colors.grey.shade600,
             ),
             textAlign: TextAlign.center,
-          ),
+          )
         ],
       ),
     );

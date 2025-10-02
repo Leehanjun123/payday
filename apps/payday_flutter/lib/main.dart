@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
-import 'screens/marketplace/marketplace_list_screen.dart'; // 새로 만든 화면 import
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'screens/splash_screen.dart';
 
-void main() {
+void main() async {
+  // Flutter 엔진과 플러그인들이 상호작용할 수 있도록 보장합니다.
+  WidgetsFlutterBinding.ensureInitialized();
+  // Firebase 초기화는 main에서 수행하는 것이 가장 안정적입니다.
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -16,8 +24,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.deepPurple,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      // 앱의 첫 화면을 MarketplaceListScreen으로 설정
-      home: const MarketplaceListScreen(),
+      // 앱의 첫 화면은 이제 인증 상태를 확인하는 SplashScreen입니다.
+      home: const SplashScreen(),
     );
   }
 }

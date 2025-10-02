@@ -1,6 +1,5 @@
-// screens/marketplace/marketplace_list_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:shimmer/shimmer.dart'; // Shimmer 패키지 import
 import '../../services/marketplace_service.dart';
 import '../../models/marketplace_item.dart';
 import 'package:intl/intl.dart';
@@ -32,7 +31,6 @@ class _MarketplaceListScreenState extends State<MarketplaceListScreen> {
 
   void _filterByCategory(String category) {
     setState(() {
-      // 이미 선택된 카테고리를 다시 누르면 필터 해제
       if (_selectedCategory == category) {
         _selectedCategory = null;
       } else {
@@ -67,7 +65,7 @@ class _MarketplaceListScreenState extends State<MarketplaceListScreen> {
         future: _itemsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return _buildSkeletonList(); // 로딩 UI를 스켈레톤으로 변경
           }
           if (snapshot.hasError) {
             return Center(child: Text('오류: ${snapshot.error}'));
@@ -102,6 +100,56 @@ class _MarketplaceListScreenState extends State<MarketplaceListScreen> {
         },
         child: const Icon(Icons.add),
         tooltip: '내 재능 판매하기',
+      ),
+    );
+  }
+
+  // 스켈레톤 UI 리스트 위젯
+  Widget _buildSkeletonList() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(16.0),
+        itemCount: 5, // 로딩 중 보여줄 스켈레톤 아이템 개수
+        itemBuilder: (context, index) => _buildSkeletonCard(),
+      ),
+    );
+  }
+
+  // 스켈레톤 카드 위젯
+  Widget _buildSkeletonCard() {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16.0),
+      elevation: 4.0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(width: double.infinity, height: 20.0, color: Colors.white),
+            const SizedBox(height: 8),
+            Container(width: double.infinity, height: 16.0, color: Colors.white),
+            const SizedBox(height: 4),
+            Container(width: 150.0, height: 16.0, color: Colors.white),
+            const SizedBox(height: 16),
+            Row(
+              children: List.generate(3, (index) => Container(
+                margin: const EdgeInsets.only(right: 8.0),
+                width: 60.0, height: 30.0, color: Colors.white,
+              )),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(width: 100.0, height: 20.0, color: Colors.white),
+                Container(width: 80.0, height: 36.0, color: Colors.white),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
