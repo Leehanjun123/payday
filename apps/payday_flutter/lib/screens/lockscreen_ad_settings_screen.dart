@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/lockscreen_ad_service.dart';
-import '../services/cash_service.dart';
+import '../services/enhanced_cash_service.dart';
 import 'package:intl/intl.dart';
 
 class LockscreenAdSettingsScreen extends StatefulWidget {
@@ -13,7 +13,7 @@ class LockscreenAdSettingsScreen extends StatefulWidget {
 class _LockscreenAdSettingsScreenState extends State<LockscreenAdSettingsScreen>
     with SingleTickerProviderStateMixin {
   final LockscreenAdService _adService = LockscreenAdService();
-  final CashService _cashService = CashService();
+  final EnhancedCashService _cashService = EnhancedCashService();
   final NumberFormat _numberFormat = NumberFormat('#,###', 'ko_KR');
 
   late AnimationController _animationController;

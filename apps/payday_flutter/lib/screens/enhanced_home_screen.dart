@@ -3,10 +3,12 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../services/income_service.dart';
 import '../services/data_service.dart';
 import '../services/admob_service.dart';
+import '../services/enhanced_cash_service.dart';
 import '../widgets/share_achievement_card.dart';
 import 'walking_reward_screen.dart';
 import 'survey_list_screen.dart';
 import 'mission_screen.dart';
+import 'reward_ad_screen.dart';
 
 class EnhancedHomeScreen extends StatefulWidget {
   const EnhancedHomeScreen({Key? key}) : super(key: key);
@@ -20,6 +22,7 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
   final _incomeService = IncomeServiceProvider.instance;
   final DataService _databaseService = DataService();
   final AdMobService _adMobService = AdMobService();
+  final EnhancedCashService _cashService = EnhancedCashService();
 
   BannerAd? _bannerAd;
   bool _isBannerAdReady = false;
@@ -41,9 +44,16 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
   void initState() {
     super.initState();
     _setupAnimations();
+    _initializeServices();
     _loadDashboardData();
     _loadBannerAd();
   }
+
+  Future<void> _initializeServices() async {
+    await _adMobService.initialize();
+    await _cashService.initialize();
+  }
+
 
   void _loadBannerAd() {
     _bannerAd = _adMobService.createBannerAd(
@@ -105,10 +115,15 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
     setState(() => _isLoading = true);
 
     try {
+      // DataService 초기화
+      await _databaseService.initialize();
       // 수익 데이터 로드
       final totalIncome = await _incomeService.getTotalIncome();
       final allIncomes = await _incomeService.getAllIncomes();
       final goals = await _databaseService.getAllGoals();
+
+      // 캐시 서비스 데이터 로드
+      final cashStats = await _cashService.getCashStatistics();
 
       // 날짜별 수익 계산
       final now = DateTime.now();
@@ -147,10 +162,10 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
       }
 
       setState(() {
-        _todayIncome = todayIncome;
+        _todayIncome = todayIncome + (cashStats['todayEarnings'] ?? 0.0);
         _weeklyIncome = weeklyIncome;
         _monthlyIncome = monthlyIncome;
-        _totalIncome = totalIncome;
+        _totalIncome = totalIncome + (cashStats['totalEarned'] ?? 0.0);
         _recentIncomes = recentIncomes;
         _goals = goals;
         _isLoading = false;
@@ -631,7 +646,15 @@ class _EnhancedHomeScreenState extends State<EnhancedHomeScreen>
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Container(), // 나중에 친구 초대 버튼 추가
+                  child: _buildQuickActionCard(
+                    '리워드 광고',
+                    Icons.play_circle_filled,
+                    Colors.red,
+                    () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const RewardAdScreen()),
+                    ),
+                  ),
                 ),
               ],
             ),

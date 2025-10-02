@@ -2,18 +2,11 @@
 
 import 'package:dio/dio.dart';
 import '../models/task.dart';
+import 'api_client.dart'; // 공유 클라이언트 import
 
 class TaskService {
-  // Dio 인스턴스 생성. 실제 앱에서는 싱글톤으로 관리하거나 DI(Dependency Injection)를 사용합니다.
-  final Dio _dio = Dio(
-    BaseOptions(
-      baseUrl: 'http://192.168.45.250:3000/api',
-      // 임시 API 키. 실제 앱에서는 Secure Storage에서 관리해야 합니다.
-      headers: {
-        'X-API-Key': 'temporary-api-key',
-      },
-    ),
-  );
+  // 공유 Dio 인스턴스를 사용합니다.
+  final Dio _dio = dio;
 
   // 모든 'OPEN' 상태의 작업 목록을 가져옵니다.
   Future<List<Task>> getOpenTasks() async {

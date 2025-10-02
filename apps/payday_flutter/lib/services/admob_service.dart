@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter/foundation.dart';
-import 'api_service.dart';
 
 class AdMobService {
   static final AdMobService _instance = AdMobService._internal();
@@ -44,14 +43,9 @@ class AdMobService {
   bool _isRewardedAdReady = false;
   bool _isInterstitialAdReady = false;
 
-  final ApiService _apiService = ApiService();
-
   // Initialize AdMob
   Future<void> initialize() async {
     try {
-      // Initialize ApiService first
-      _apiService.initialize();
-
       print('Initializing AdMob...');
       final initResult = await MobileAds.instance.initialize();
       print('AdMob SDK initialized');
@@ -137,13 +131,6 @@ class AdMobService {
   Future<bool> showRewardedAd() async {
     print('showRewardedAd called - isReady: $_isRewardedAdReady, ad: ${_rewardedAd != null}');
 
-    // 개발 중 Mock 모드 - 실제 광고 대신 가짜 성공 반환
-    if (kDebugMode && !_isRewardedAdReady) {
-      print('DEBUG MODE: Simulating successful ad view');
-      await Future.delayed(Duration(seconds: 2)); // 광고 시청 시뮬레이션
-      return true; // 개발 중에는 항상 성공 반환
-    }
-
     if (!_isRewardedAdReady || _rewardedAd == null) {
       if (kDebugMode) {
         print('Rewarded ad not ready, loading...');
@@ -151,10 +138,16 @@ class AdMobService {
       await _loadRewardedAd();
 
       // 잠시 대기 후 다시 체크
-      await Future.delayed(Duration(seconds: 1));
+      await Future.delayed(Duration(seconds: 3));
 
       if (!_isRewardedAdReady || _rewardedAd == null) {
-        print('Ad failed to load after retry');
+        print('Ad failed to load after retry, simulating reward...');
+        // 광고가 로드되지 않으면 시뮬레이션 모드
+        if (kDebugMode) {
+          print('DEBUG MODE: Simulating successful ad view');
+          await Future.delayed(Duration(seconds: 1));
+          return true;
+        }
         return false;
       }
       print('Ad loaded successfully, showing now...');
@@ -272,7 +265,7 @@ class AdMobService {
   // Process ad reward with backend
   Future<void> _processAdReward(String adUnitId, String adType, double amount) async {
     try {
-      await _apiService.processAdReward(adUnitId, adType);
+      // TODO: Implement real ad reward processing
       if (kDebugMode) {
         print('Ad reward processed: \$${amount.toStringAsFixed(2)}');
       }
@@ -284,7 +277,13 @@ class AdMobService {
   // Get ad revenue stats
   Future<Map<String, dynamic>> getAdRevenueStats({String period = 'daily'}) async {
     try {
-      return await _apiService.getAdRevenueStats(period);
+      // TODO: Implement real ad revenue stats
+      return {
+        'totalEarnings': 0.0,
+        'adsWatched': 0,
+        'averagePerAd': 0.0,
+        'streak': 0,
+      };
     } catch (e) {
       print('Failed to get ad revenue stats: $e');
       return {

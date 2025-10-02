@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/revenue_service.dart';
-import '../services/cash_service.dart';
+import '../services/enhanced_cash_service.dart';
 import '../services/data_service.dart';
 
 class RevenueDashboardScreen extends StatefulWidget {
@@ -14,7 +14,7 @@ class RevenueDashboardScreen extends StatefulWidget {
 class _RevenueDashboardScreenState extends State<RevenueDashboardScreen>
     with SingleTickerProviderStateMixin {
   final RevenueService _revenueService = RevenueService();
-  final CashService _cashService = CashService();
+  final EnhancedCashService _cashService = EnhancedCashService();
   final DataService _dataService = DataService();
   final NumberFormat _numberFormat = NumberFormat('#,###', 'ko_KR');
 

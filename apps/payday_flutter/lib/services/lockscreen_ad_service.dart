@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'data_service.dart';
-import 'cash_service.dart';
+import 'enhanced_cash_service.dart';
 import 'admob_service.dart';
 import 'analytics_service.dart';
 
@@ -11,7 +11,7 @@ class LockscreenAdService {
   LockscreenAdService._internal();
 
   final DataService _dataService = DataService();
-  final CashService _cashService = CashService();
+  final EnhancedCashService _cashService = EnhancedCashService();
   final AdMobService _adMobService = AdMobService();
 
   // 잠금화면 광고 설정

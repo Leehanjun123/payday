@@ -1,7 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import '../config/app_config.dart';
-import 'auth_service.dart';
 
 class DataService {
   static final DataService _instance = DataService._internal();
@@ -9,7 +8,6 @@ class DataService {
   DataService._internal();
 
   late Dio _dio;
-  final AuthService _auth = AuthService();
 
   Future<void> initialize() async {
     _dio = Dio(BaseOptions(
@@ -28,10 +26,6 @@ class DataService {
     // Auth 인터셉터 추가
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) {
-        final token = _auth.currentUser?.token;
-        if (token != null) {
-          options.headers['Authorization'] = 'Bearer $token';
-        }
         // 임시 API 키 추가 (백엔드와 협의 필요)
         options.headers['X-API-Key'] = 'temporary-api-key';
         handler.next(options);

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'data_service.dart';
-import 'api_service.dart';
 import 'analytics_service.dart';
 
 class CashService {
@@ -10,7 +9,6 @@ class CashService {
   CashService._internal();
 
   final DataService _dataService = DataService();
-  final ApiService _apiService = ApiService();
 
   // 캐시 관련 상수 (실제 원화)
   static const int MIN_WITHDRAWAL = 5000; // 최소 출금 금액 5,000원

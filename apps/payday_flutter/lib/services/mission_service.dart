@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'data_service.dart';
-import 'cash_service.dart';
+import 'enhanced_cash_service.dart';
 import 'analytics_service.dart';
 
 class MissionService {
@@ -10,7 +10,7 @@ class MissionService {
   MissionService._internal();
 
   final DataService _dataService = DataService();
-  final CashService _cashService = CashService();
+  final EnhancedCashService _cashService = EnhancedCashService();
 
   // 미션 타입
   static const Map<String, dynamic> MISSION_TYPES = {

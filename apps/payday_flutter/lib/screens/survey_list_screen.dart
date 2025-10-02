@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/survey_service.dart';
-import '../services/cash_service.dart';
+import '../services/enhanced_cash_service.dart';
 import '../services/analytics_service.dart';
 import 'package:intl/intl.dart';
 
@@ -15,7 +15,7 @@ class SurveyListScreen extends StatefulWidget {
 class _SurveyListScreenState extends State<SurveyListScreen>
     with SingleTickerProviderStateMixin {
   final SurveyService _surveyService = SurveyService();
-  final CashService _cashService = CashService();
+  final EnhancedCashService _cashService = EnhancedCashService();
   final NumberFormat _numberFormat = NumberFormat('#,###', 'ko_KR');
 
   late TabController _tabController;

@@ -86,12 +86,6 @@ const authenticate = async (req, res, next) => {
     const token = req.headers.authorization?.split(' ')[1];
 
     if (!token) {
-      // 임시 API Key 체크 (기존 호환성 유지)
-      const apiKey = req.headers['x-api-key'];
-      if (apiKey === 'temporary-api-key') {
-        req.user = { userId: '00000000-0000-0000-0000-000000000000', email: 'temp@payday.com', role: 'USER' };
-        return next();
-      }
       return res.status(401).json({ error: 'Authentication required', message: 'No token provided' });
     }
 
@@ -282,6 +276,59 @@ app.post('/api/auth/logout', authenticate, (req, res) => {
   res.json({
     message: 'Logout successful'
   });
+});
+
+// ========== USER ROUTES ==========
+
+// Get user profile
+app.get('/api/users/profile', authenticate, async (req, res) => {
+  try {
+    const result = await db.query('SELECT id, email, name, phone, role, email_verified, phone_verified, created_at FROM users WHERE id = $1', [req.user.userId]);
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({ error: 'Failed to get user profile', message: error.message });
+  }
+});
+
+// Update user profile
+app.put('/api/users/profile', authenticate, async (req, res) => {
+  try {
+    const { name, phone } = req.body;
+    let updateQuery = 'UPDATE users SET ';
+    const queryParams = [];
+    let paramIndex = 1;
+
+    if (name) {
+      updateQuery += `name = $${paramIndex++}, `;
+      queryParams.push(name);
+    }
+    if (phone) {
+      updateQuery += `phone = $${paramIndex++}, `;
+      queryParams.push(phone);
+    }
+
+    if (queryParams.length === 0) {
+      return res.status(400).json({ error: 'No update fields provided' });
+    }
+
+    updateQuery = updateQuery.slice(0, -2); // Remove trailing comma and space
+    updateQuery += ` WHERE id = $${paramIndex}`;
+    queryParams.push(req.user.userId);
+
+    await db.query(updateQuery, queryParams);
+
+    res.json({ message: 'Profile updated successfully' });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    res.status(500).json({ error: 'Failed to update profile', message: error.message });
+  }
 });
 
 // ========== USER ROUTES ==========
