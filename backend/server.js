@@ -755,15 +755,15 @@ app.get('/api/marketplace', async (req, res) => {
     let valueIndex = 1;
 
     if (category) {
-      query += ` AND category = ${valueIndex++}`;
+      query += ` AND category = $${valueIndex++}`;
       values.push(category);
     }
     if (minPrice) {
-      query += ` AND price >= ${valueIndex++}`;
+      query += ` AND price >= $${valueIndex++}`;
       values.push(parseFloat(minPrice));
     }
     if (maxPrice) {
-      query += ` AND price <= ${valueIndex++}`;
+      query += ` AND price <= $${valueIndex++}`;
       values.push(parseFloat(maxPrice));
     }
 

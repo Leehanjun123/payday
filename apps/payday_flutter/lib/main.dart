@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/marketplace/task_list_screen.dart'; // 새로 만든 화면 import
+import 'screens/marketplace/marketplace_list_screen.dart'; // 새로 만든 화면 import
 
 void main() {
   runApp(const MyApp());
@@ -16,8 +16,8 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.deepPurple,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      // 앱의 첫 화면을 TaskListScreen으로 설정
-      home: const TaskListScreen(),
+      // 앱의 첫 화면을 MarketplaceListScreen으로 설정
+      home: const MarketplaceListScreen(),
     );
   }
 }
