@@ -843,7 +843,245 @@ app.post('/api/marketplace', authenticate, async (req, res) => {
   }
 });
 
-// ========== PAYMENTS ROUTES ==========
+// ========== PAYDAY CASH SYSTEM ROUTES ==========
+
+// Device-based authentication (for guest users)
+app.post('/auth/login', async (req, res) => {
+  try {
+    const { deviceId, email, phone, firebaseUid } = req.body;
+
+    if (!deviceId) {
+      return res.status(400).json({ error: 'Device ID is required' });
+    }
+
+    // Check if user exists by device ID
+    let userQuery = 'SELECT * FROM users WHERE device_id = $1';
+    let userResult = await db.query(userQuery, [deviceId]);
+
+    if (userResult.rows.length === 0) {
+      // Create new user with device ID
+      const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const insertQuery = `
+        INSERT INTO users(device_id, email, phone, firebase_uid, referral_code, cash_balance, total_earned)
+        VALUES($1, $2, $3, $4, $5, 0.00, 0.00)
+        RETURNING *
+      `;
+      userResult = await db.query(insertQuery, [deviceId, email, phone, firebaseUid, referralCode]);
+    } else if (email || phone || firebaseUid) {
+      // Update existing user with new auth info
+      const updateQuery = `
+        UPDATE users SET email = COALESCE($2, email), phone = COALESCE($3, phone),
+                        firebase_uid = COALESCE($4, firebase_uid), last_login_at = NOW()
+        WHERE device_id = $1
+        RETURNING *
+      `;
+      userResult = await db.query(updateQuery, [deviceId, email, phone, firebaseUid]);
+    }
+
+    const user = userResult.rows[0];
+    const token = generateToken(user.id, user.email || 'guest');
+
+    res.json({
+      user: {
+        id: user.id,
+        device_id: user.device_id,
+        email: user.email,
+        referral_code: user.referral_code,
+        created_at: user.created_at
+      },
+      auth_token: token
+    });
+  } catch (error) {
+    console.error('PayDay auth error:', error);
+    res.status(500).json({ error: 'Authentication failed', message: error.message });
+  }
+});
+
+// Get user balance
+app.get('/users/:userId/balance', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await db.query('SELECT cash_balance FROM users WHERE id = $1', [userId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json({ balance: result.rows[0].cash_balance });
+  } catch (error) {
+    console.error('Get balance error:', error);
+    res.status(500).json({ error: 'Failed to get balance', message: error.message });
+  }
+});
+
+// Record transaction/earning
+app.post('/transactions', authenticate, async (req, res) => {
+  try {
+    const { user_id, type, earning_method, amount, description, metadata, ad_unit_id, ad_impression_id } = req.body;
+
+    // Insert transaction
+    const transactionQuery = `
+      INSERT INTO transactions(user_id, type, earning_method, amount, description, metadata, ad_unit_id, ad_impression_id)
+      VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `;
+    const transactionResult = await db.query(transactionQuery, [
+      user_id, type, earning_method, amount, description,
+      JSON.stringify(metadata || {}), ad_unit_id, ad_impression_id
+    ]);
+
+    // Update user balance if earning
+    if (type === 'earn') {
+      await db.query(
+        'UPDATE users SET cash_balance = cash_balance + $1, total_earned = total_earned + $1 WHERE id = $2',
+        [amount, user_id]
+      );
+    }
+
+    res.status(201).json({
+      success: true,
+      transaction: transactionResult.rows[0],
+      message: 'Transaction recorded successfully'
+    });
+  } catch (error) {
+    console.error('Record transaction error:', error);
+    res.status(500).json({ error: 'Failed to record transaction', message: error.message });
+  }
+});
+
+// AdMob revenue verification
+app.post('/admob/verify', authenticate, async (req, res) => {
+  try {
+    const { user_id, ad_unit_id, impression_id, revenue_usd } = req.body;
+
+    // Mock verification - in real app, verify with AdMob API
+    const exchangeRate = 1300; // USD to KRW
+    const userSharePercentage = 0.5;
+    const revenueKrw = revenue_usd * exchangeRate;
+    const userRewardKrw = revenueKrw * userSharePercentage;
+
+    // Record AdMob sync
+    const syncQuery = `
+      INSERT INTO admob_revenue_sync(ad_unit_id, impression_id, revenue_usd, revenue_krw, exchange_rate, user_share, user_id)
+      VALUES($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `;
+    await db.query(syncQuery, [ad_unit_id, impression_id, revenue_usd, revenueKrw, exchangeRate, userRewardKrw, user_id]);
+
+    res.json({
+      verified: true,
+      user_reward_krw: userRewardKrw,
+      exchange_rate: exchangeRate,
+      revenue_usd: revenue_usd
+    });
+  } catch (error) {
+    console.error('AdMob verification error:', error);
+    res.status(500).json({ error: 'Verification failed', message: error.message });
+  }
+});
+
+// Check daily limits
+app.get('/users/:userId/daily-limits/:earningMethod', authenticate, async (req, res) => {
+  try {
+    const { userId, earningMethod } = req.params;
+    const today = new Date().toISOString().split('T')[0];
+
+    const result = await db.query(
+      'SELECT count FROM daily_limits WHERE user_id = $1 AND earning_method = $2 AND date = $3',
+      [userId, earningMethod, today]
+    );
+
+    // Default limits
+    const defaultLimits = {
+      'ad_view': 20,
+      'walking': 50,
+      'daily_login': 1
+    };
+
+    const currentCount = result.rows.length > 0 ? result.rows[0].count : 0;
+    const limit = defaultLimits[earningMethod] || 10;
+
+    res.json({ can_earn: currentCount < limit, current: currentCount, limit });
+  } catch (error) {
+    console.error('Daily limit check error:', error);
+    res.status(500).json({ error: 'Failed to check daily limit', message: error.message });
+  }
+});
+
+// Get withdrawal requests
+app.get('/users/:userId/withdrawals', authenticate, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await db.query(
+      'SELECT * FROM withdrawal_requests WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+    res.json({ withdrawals: result.rows });
+  } catch (error) {
+    console.error('Get withdrawals error:', error);
+    res.status(500).json({ error: 'Failed to get withdrawals', message: error.message });
+  }
+});
+
+// Create withdrawal request
+app.post('/withdrawals', authenticate, async (req, res) => {
+  try {
+    const { user_id, amount, bank_name, account_number, account_holder_name, pin } = req.body;
+
+    // Basic validation
+    if (amount < 10000) {
+      return res.status(400).json({ error: 'Minimum withdrawal amount is 10,000 KRW' });
+    }
+
+    // Check user balance
+    const balanceResult = await db.query('SELECT cash_balance FROM users WHERE id = $1', [user_id]);
+    if (balanceResult.rows.length === 0 || balanceResult.rows[0].cash_balance < amount) {
+      return res.status(400).json({ error: 'Insufficient balance' });
+    }
+
+    // Calculate fee (3%)
+    const fee = amount * 0.03;
+    const netAmount = amount - fee;
+
+    // Create withdrawal request
+    const withdrawalQuery = `
+      INSERT INTO withdrawal_requests(user_id, amount, fee, net_amount, bank_name, account_number_encrypted, account_holder_name)
+      VALUES($1, $2, $3, $4, $5, $6, $7)
+      RETURNING *
+    `;
+    const result = await db.query(withdrawalQuery, [
+      user_id, amount, fee, netAmount, bank_name, account_number, account_holder_name
+    ]);
+
+    // Deduct from user balance (pending withdrawal)
+    await db.query('UPDATE users SET cash_balance = cash_balance - $1 WHERE id = $2', [amount, user_id]);
+
+    res.status(201).json({
+      withdrawal_request: result.rows[0],
+      message: 'Withdrawal request created successfully'
+    });
+  } catch (error) {
+    console.error('Create withdrawal error:', error);
+    res.status(500).json({ error: 'Failed to create withdrawal request', message: error.message });
+  }
+});
+
+// Get system settings
+app.get('/system/settings', async (req, res) => {
+  try {
+    const result = await db.query('SELECT key, value FROM system_settings');
+    const settings = {};
+    result.rows.forEach(row => {
+      settings[row.key] = row.value;
+    });
+    res.json({ settings });
+  } catch (error) {
+    console.error('Get system settings error:', error);
+    res.status(500).json({ error: 'Failed to get system settings', message: error.message });
+  }
+});
+
+// ========== LEGACY PAYMENTS ROUTES ==========
 
 // Get payment history
 app.get('/api/payments', authenticate, async (req, res) => {
